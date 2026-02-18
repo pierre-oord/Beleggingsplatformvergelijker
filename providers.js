@@ -610,7 +610,7 @@
       aandelenpercentage: 90,
       fbi: false,
       service_recurring_investing: true,
-      service_fractional_investing: false,
+      service_fractional_investing: true,
       overrides: {
         underlyingAnnualPct: 0.7,
       },

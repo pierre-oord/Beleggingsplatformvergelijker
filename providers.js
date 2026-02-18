@@ -1,0 +1,776 @@
+/* global window */
+(() => {
+  /**
+   * Provider config format
+   * - fees.components: array van fee-componenten (fixed, percentOfBase, etc.)
+   * - percentOfBase.ratePct: altijd op jaarbasis (%)
+   * - percentOfBase.frequency: wanneer in rekening gebracht. "monthly" = 1/12 per maand, "quarterly" = 1/4 in maanden 3,6,9,12
+   * - percentOfBase.minimumAnnual: optioneel minimum jaarbedrag voor dit component
+   * - Keep it declarative so providers are easy to add.
+   */
+  const PROVIDERS = [
+    {
+      id: "uptomore",
+      name: "UpToMore",
+      website: "https://www.uptomore.com",
+      type: "fondsaanbieder",
+      countries: ["NL", "BE"],
+      lastUpdated: "16-02-2026",
+      // Extra eigenschappen (informational only; no calculations depend on these)
+      minimumInleg: null, // EUR
+      duurzaamheid: "Lichtgroen SFDR Artikel 8", // 'Grijs SFDR Artikel 6' | 'Lichtgroen SFDR Artikel 8' | 'Donkergroen SFDR Artikel 9'
+      aandelenpercentage: 100, // 0..100 (%)
+      fbi: false,
+      tax_BE_TOB_service: "",
+      tax_BE_roerende_voorheffing_service: "",
+      tax_BE_effectentaks_service: "",
+      tax_BE_reynderstaks_service: "",
+      service_recurring_investing: true,
+      service_fractional_investing: true,
+      overrides: {
+        annualReturnPct: 8.9,
+        underlyingAnnualPct: 0.2084,
+      },
+      underlyingCostBasis: "begin", // begin | avg | end
+      fixedMonthlySkipMonths: 3, // Eerste 3 maanden geen fixed kosten
+      fees: {
+        components: [
+          { kind: "fixed", amount: 0.99 },
+          { kind: "percentOfBase", ratePct: 0.1, frequency: "monthly", basis: "avg" },
+        ],
+      },
+      transactions: {
+        deposit: null,
+        withdraw: null,
+      },
+    },
+    {
+      id: "meesman-aandelen-wereldwijd-zeer-offensief",
+      name: "Meesman (Aandelen wereldwijd, zeer offensief)",
+      website: "https://www.meesman.nl",
+      type: "fondsaanbieder",
+      countries: ["NL"],
+      lastUpdated: "17-02-2026",
+      // Extra eigenschappen (informational only; no calculations depend on deze velden)
+      minimumInleg: null, // Die is 10.000 maar je mag er naartoe sparen...
+      duurzaamheid: "Lichtgroen SFDR Artikel 8", 
+      aandelenpercentage: 100,
+      fbi: true,
+      service_recurring_investing: true,
+      service_fractional_investing: true,
+      overrides: {
+        // Aaandelen wereldwijd A hebben deze fondsen (ontvangen per email van Meesman)
+        // IE00BF2PF682 0,07% lopende + 0,01% Transactiekosten (82,6% van fonds 2025 jaarrekening)
+        // NL0013089147 0,18% lopende + 0,07% Transactiekosten (8,2% van fonds 2025 jaarrekening)
+        // NL0013552094 0,23% Lopende + 0,05% Transactiekosten (9,2 van fonds 2025 jaarrekening)
+        // Dit geeft een gemiddelde van 0,11% onderliggende kosten, terwijl Meesman 0,09 noemt. 
+        // Het lijkt erop dat de transactiekosten zijn vergeten. Mogelijk brengt Meesman 0,02% kosten teveel in rekening,
+        // want het 'gat' dichten ze, totdat ze uitkomen op 0,40%, aldus hun documentatie.
+        // Na contact met Meesman (maanden geleden) is bevestigd dat er fouten staan in het KID, maar na herhaaldelijk herinneren is
+        // het niet bijgewerkt. Daarom ga ik er vanuit dat de 0,02% kosten nog steeds missen.
+
+
+        // Dividendlekkagevoordeel
+        // Diverse aanbieders roepen grote getallen, maar onderbouwen die niet. Back-of-the-enveloppe berekningen 
+        // laten zien dat die niet kunnen kloppen. Er zouden daarnaast grote verschillen moeten zitten tussen de diverse fondsen.
+        // Bij Meesman heb ik als enige aanbieder iets in de jaarrekening kunnen vinden, maar niet bevestigd gekregen of dit klopt.
+        // Als Meesman bijvoorbeeld van de afgelopen 5 jaar het bespaarde dividendlekkage percentage kan overleggen,
+        // kunnen we dit opnemen in de tool. Hierna volgt een stuk uit de jaarrrekeningen:
+        //
+        // Aandelen Wereldwijd Totaal (A)	
+        //                                              2024	                2023
+        // Reservering te verrekenen dividendbelasting 	1.472.723	            865.365
+        // Te verrekenen dividendbelasting	            470.255	              250.622
+        // Beleggingsfondsen	                          918.950.834	          536.051.105
+        //
+        // 1.472.723 + 470.255 / ((918.950.834 +	536.051.105)/2) = 0,27%
+        // Nu moet je nog rekening houden dat je pas na één jaar dit bedrag ontvangt van Meesman.
+        // En dat je van de belastingdienst ook nog 6 maanden moet wachten totdat je de teruggave krijgt.
+        // 
+        // Een ander issue dat (denk ik) nog speelt: als je niet weet wat een fonds aan belasting betaalt,
+        // kun je de teruggave ook niet goed plaatsen.
+        // Stel dat je een fonds hebt met heel bedrijven die vooral dividend betalen. Logischerwijs is er dan ook meer
+        // dividendlekkage voordeel. Hetzelfde geld voor fondsen die relatief veel belasting betalen door welke oorzaak dan ook.
+        // Al met al: ik kom uit op een potentiële 0,13% voordeel, mits alle bovenstaande aannames juist zijn.
+    
+
+        underlyingAnnualPct: (0.09 + 0.02),
+      },
+      // Aanbiederkosten op basis van saldo (S4, annual percentage):
+      // 0,31% tot saldo 1.000.000, vanaf 1.000.000: 0,16%.
+      underlyingCostBasis: "begin",
+      fees: {
+        components: [
+          {
+            kind: "percentOfBase",
+            basis: "avg",
+            frequency: "monthly",
+            tiers: {
+              inclusiveUpper: false,
+              apply: "highest",
+              tiers: [
+                { upTo: 1000000, ratePct: 0.31 },
+                { upTo: null, ratePct: 0.16 },
+              ],
+            },
+          },
+        ],
+      },
+      // Transactiekosten: 0,25% per aankoop/verkoop.
+      // Vanaf een "saldo" van 500.000 vervallen de transactiekosten.
+      transactions: {
+        deposit: {
+          kind: "tieredTransaction",
+          // 0,25% per transactie zolang saldo < 500.000; daarboven geen tx-kosten.
+          balanceThresholdForFees: 500000,
+          percentRatePct: 0.25,
+        },
+        withdraw: {
+          kind: "tieredTransaction",
+          balanceThresholdForFees: 500000,
+          percentRatePct: 0.25,
+        },
+      },
+    },
+    {
+      id: "medirect-memanaged-groei",
+      name: "MeDirect (MeManaged Groei)",
+      website: "https://www.medirect.eu",
+      type: "fondsaanbieder",
+      countries: ["NL", "BE"],
+      lastUpdated: "17-02-2026",
+      minimumInleg: 5000,
+      duurzaamheid: 'Lichtgroen SFDR Artikel 8',
+      aandelenpercentage: 90,
+      fbi: false,
+      tax_BE_TOB_service: "",
+      tax_BE_roerende_voorheffing_service: "",
+      tax_BE_effectentaks_service: "",
+      tax_BE_reynderstaks_service: "",
+      service_recurring_investing: true,
+      service_fractional_investing: true,
+      overrides: {
+        underlyingAnnualPct: 0.4,
+      },
+      underlyingCostBasis: "begin",
+      fees: {
+        components: [
+          {
+            kind: "percentOfBase",
+            basis: "end",
+            frequency: "quarterly",
+            ratePct: 0.9,
+          },
+        ],
+      },
+      transactions: {
+        deposit: null,
+        withdraw: null,
+      },
+    },
+    {
+      id: "degiro",
+      name: "DEGIRO",
+      website: "https://www.degiro.com",
+      type: "broker",
+      countries: ["NL", "BE", "DE", "AT", "FR", "IT", "ES", "PL", "CZ", "HU", "IE", "UK"],
+      lastUpdated: null,
+      // Extra eigenschappen (informational only; no calculations depend on these)
+      minimumInleg: null, // EUR
+      duurzaamheid: null, // 'Grijs SFDR Artikel 6' | 'Lichtgroen SFDR Artikel 8' | 'Donkergroen SFDR Artikel 9'
+      aandelenpercentage: null, // 0..100 (%)
+      fbi: false,
+      tax_BE_TOB_service: "",
+      tax_BE_roerende_voorheffing_service: "",
+      tax_BE_effectentaks_service: "",
+      tax_BE_reynderstaks_service: "",
+      service_recurring_investing: false,
+      service_fractional_investing: false,
+      // Belgische TOB op inleg (storting/initiële inleg)
+      tax_BE_TOB_percentage: 0.12, // 0,12% per inleg
+      tax_BE_TOB_max: 1300, // maximaal 1.300 EUR per maand (cap)
+      overrides: {},
+      underlyingCostBasis: "begin",
+      fees: { components: [] },
+      transactions: {
+        deposit: { kind: "fixedPerTransaction", amount: 1.0 },
+        withdraw: { kind: "fixedPerTransaction", amount: 1.0 },
+      },
+    },
+    {
+      id: "saxo-autoinvest-nl",
+      name: "Saxo (Autoinvest) NL",
+      website: "https://www.home.saxo",
+      type: "broker",
+      transactionsPerMonth: 1,
+      countries: ["NL"],
+      lastUpdated: "18-02-2026",
+      minimumInleg: null,
+      duurzaamheid: null,
+      aandelenpercentage: null,
+      fbi: false,
+      tax_BE_TOB_service: "",
+      tax_BE_roerende_voorheffing_service: "",
+      tax_BE_effectentaks_service: "",
+      tax_BE_reynderstaks_service: "",
+      service_recurring_investing: true,
+      service_fractional_investing: true,
+      overrides: {},
+      underlyingCostBasis: "begin",
+      fees: {
+        components: [
+          {
+            kind: "percentOfBase",
+            ratePct: 0.12,
+            frequency: "monthly",
+            basis: "avg",
+            maximumMonthly: 40,
+          },
+        ],
+      },
+      transactions: {
+        deposit: null,
+        withdraw: {
+          kind: "tieredTransaction",
+          percentTiers: {
+            tiers: [
+              { upTo: 200000, ratePct: 0.08 },
+              { upTo: 1000000, ratePct: 0.05 },
+              { upTo: null, ratePct: 0.03 },
+            ],
+            inclusiveUpper: false,
+            apply: "highest",
+          },
+          minimumAmount: 2,
+        },
+      },
+    },
+    {
+      id: "bux-basic",
+      name: "Bux Basic (Duurzaamheid)",
+      website: "https://www.getbux.com",
+      type: "fondsaanbieder",
+      countries: ["NL", "BE", "DE", "FR", "IT", "ES", "AT", "IE"],
+      lastUpdated: null,
+      minimumInleg: null,
+      duurzaamheid: "Lichtgroen SFDR Artikel 8",
+      aandelenpercentage: 100,
+      fbi: false,
+      tax_BE_TOB_service: "",
+      tax_BE_roerende_voorheffing_service: "",
+      tax_BE_effectentaks_service: "",
+      tax_BE_reynderstaks_service: "",
+      service_recurring_investing: true,
+      service_fractional_investing: true,
+      // Belgische TOB op inleg (storting/initiële inleg)
+      tax_BE_TOB_percentage: 0.12, // 0,12% per inleg
+      tax_BE_TOB_max: 1300, // maximaal 1.300 EUR per maand (cap)
+      overrides: {
+        underlyingAnnualPct: 0.294,
+      },
+      underlyingCostBasis: "begin",
+      fees: {
+        components: [
+          { kind: "fixed", amount: 0 },
+          { kind: "percentOfBase", ratePct: 0.2, frequency: "monthly", basis: "avg" },
+        ],
+      },
+      transactions: {
+        deposit: null,
+        withdraw: { kind: "fixedPerTransaction", amount: 0.99 * 5 }, /* 5 transacties bij opname */
+      },
+    },
+    {
+      id: "bux-plus",
+      name: "Bux Plus (Duurzaamheid)",
+      website: "https://www.bux.com",
+      type: "fondsaanbieder",
+      countries: ["NL", "BE", "DE", "FR", "IT", "ES", "AT", "IE"],
+      lastUpdated: null,
+      minimumInleg: null,
+      duurzaamheid: "Lichtgroen SFDR Artikel 8",
+      aandelenpercentage: 100,
+      fbi: false,
+      tax_BE_TOB_service: "",
+      tax_BE_roerende_voorheffing_service: "",
+      tax_BE_effectentaks_service: "",
+      tax_BE_reynderstaks_service: "",
+      service_recurring_investing: true,
+      service_fractional_investing: true,
+      // Belgische TOB op inleg (storting/initiële inleg)
+      tax_BE_TOB_percentage: 0.12, // 0,12% per inleg
+      tax_BE_TOB_max: 1300, // maximaal 1.300 EUR per maand (cap)
+      overrides: {
+        underlyingAnnualPct: 0.294,
+      },
+      underlyingCostBasis: "begin",
+      fees: {
+        components: [
+          { kind: "fixed", amount: 2.99 },
+          {
+            kind: "percentOfBase",
+            frequency: "monthly",
+            basis: "avg",
+            tiers: {
+              inclusiveUpper: true,
+              apply: "marginal",
+              tiers: [
+                { upTo: 250000, ratePct: 0 },
+                { upTo: null, ratePct: 0.1 },
+              ],
+            },
+          },
+        ],
+      },
+      transactions: {
+        deposit: null,
+        withdraw: { kind: "fixedPerTransaction", amount: 0.99 * 5 }, /* 5 transacties bij opname */
+      },
+    },
+    {
+      id: "bux-prime",
+      name: "Bux Prime (Duurzaamheid)",
+      website: "https://www.bux.com",
+      type: "fondsaanbieder",
+      countries: ["NL", "BE", "DE", "FR", "IT", "ES", "AT", "IE"],
+      lastUpdated: null,
+      minimumInleg: null,
+      duurzaamheid: "Lichtgroen SFDR Artikel 8",
+      aandelenpercentage: 100,
+      fbi: false,
+      tax_BE_TOB_service: "",
+      tax_BE_roerende_voorheffing_service: "",
+      tax_BE_effectentaks_service: "",
+      tax_BE_reynderstaks_service: "",
+      service_recurring_investing: true,
+      service_fractional_investing: true,
+      // Belgische TOB op inleg (storting/initiële inleg)
+      tax_BE_TOB_percentage: 0.12, // 0,12% per inleg
+      tax_BE_TOB_max: 1300, // maximaal 1.300 EUR per maand (cap)
+      overrides: {
+        underlyingAnnualPct: 0.294,
+      },
+      underlyingCostBasis: "begin",
+      fees: {
+        components: [
+          { kind: "fixed", amount: 7.99 },
+          {
+            kind: "percentOfBase",
+            frequency: "monthly",
+            basis: "avg",
+            tiers: {
+              inclusiveUpper: true,
+              apply: "marginal",
+              tiers: [
+                { upTo: 500000, ratePct: 0 },
+                { upTo: null, ratePct: 0.1 },
+              ],
+            },
+          },
+        ],
+      },
+      transactions: {
+        deposit: null,
+        withdraw: { kind: "fixedPerTransaction", amount: 0.99 * 5 }, /* 5 transacties bij opname */
+      },
+    },
+    {
+      id: "vaneck-direct-zeer-offensief",
+      name: "VanEck Direct (Zeer offensief)",
+      website: "https://www.vaneck.com",
+      type: "fondsaanbieder",
+      countries: ["NL"],
+      lastUpdated: null,
+      minimumInleg: null,
+      // 95% SFDR Artikel 8, 5% Artikel 6
+      duurzaamheid: "Grijs SFDR Artikel 6",
+      aandelenpercentage: 90,
+      fbi: true,
+      service_recurring_investing: true,
+      service_fractional_investing: true,
+      overrides: {
+        underlyingAnnualPct: 0.22,
+      },
+      underlyingCostBasis: "begin",
+      fees: {
+        components: [
+          { kind: "percentOfBase", ratePct: 0.5, frequency: "monthly", basis: "avg" },
+        ],
+      },
+      transactions: {
+        deposit: null,
+        withdraw: null,
+      },
+    },
+    {
+      id: "semmiewealth-premium-solid-zeer-offensief",
+      name: "SemmieWealth (Premium Solid Zeer offensief)",
+      website: "https://www.semmiewealth.nl",
+      type: "fondsaanbieder",
+      countries: ["NL"],
+      lastUpdated: null,
+      minimumInleg: 1000,
+      duurzaamheid: "Lichtgroen SFDR Artikel 8",
+      aandelenpercentage: 100,
+      fbi: false,
+      service_recurring_investing: true,
+      service_fractional_investing: true,
+      overrides: {
+        underlyingAnnualPct: 0.21,
+      },
+      underlyingCostBasis: "begin",
+      fees: {
+        components: [
+          { kind: "fixed", amount: 3.99 },
+          { kind: "percentOfBase", ratePct: 0.85, frequency: "monthly", basis: "avg", minimumAnnual: 85 },
+        ],
+      },
+      transactions: {
+        deposit: null,
+        withdraw: null,
+      },
+    },
+    {
+      id: "semmiewealth-growth-solid-zeer-offensief",
+      name: "SemmieWealth (Growth Solid Zeer offensief)",
+      website: "https://www.semmiewealth.nl",
+      type: "fondsaanbieder",
+      countries: ["NL"],
+      lastUpdated: null,
+      minimumInleg: 500000,
+      duurzaamheid: "Lichtgroen SFDR Artikel 8",
+      aandelenpercentage: 100,
+      fbi: false,
+      service_recurring_investing: true,
+      service_fractional_investing: true,
+      overrides: {
+        underlyingAnnualPct: 0.21,
+      },
+      underlyingCostBasis: "begin",
+      fees: {
+        components: [
+          { kind: "fixed", amount: 3.99 },
+          { kind: "percentOfBase", ratePct: 0.75, frequency: "monthly", basis: "avg" },
+        ],
+      },
+      transactions: {
+        deposit: null,
+        withdraw: null,
+      },
+    },
+    {
+      id: "raisin-zeer-offensief",
+      name: "Raisin (Zeer offensief)",
+      website: "https://www.raisin.com",
+      type: "fondsaanbieder",
+      countries: ["NL"],
+      lastUpdated: null,
+      minimumInleg: 25,
+      duurzaamheid: 'Grijs SFDR Artikel 6',
+      aandelenpercentage: 100,
+      fbi: false,
+      service_recurring_investing: true,
+      service_fractional_investing: true,
+      overrides: {
+        underlyingAnnualPct: 0.13,
+      },
+      underlyingCostBasis: "begin",
+      fees: {
+        components: [
+          {
+            kind: "percentOfBase",
+            frequency: "monthly",
+            basis: "avg",
+            tiers: {
+              inclusiveUpper: false,
+              apply: "highest",
+              tiers: [
+                { upTo: 100000, ratePct: 0.46 },
+                { upTo: 250000, ratePct: 0.32 },
+                { upTo: 500000, ratePct: 0.29 },
+                { upTo: null, ratePct: 0.25 },
+              ],
+            },
+          },
+        ],
+      },
+      transactions: {
+        deposit: null,
+        withdraw: null,
+      },
+    },
+    {
+      id: "peaks-avontuurlijk-2-jaar",
+      name: "Peaks (Avontuurlijk, 2 jaar)",
+      website: "https://peaks.nl",
+      type: "fondsaanbieder",
+      countries: ["NL", "DE"],
+      lastUpdated: null,
+      minimumInleg: null,
+      duurzaamheid: "Grijs SFDR Artikel 6", // 93% SFDR Article 8, 7% SFDR Article 6
+      aandelenpercentage: 90,
+      fbi: false,
+      service_recurring_investing: true,
+      service_fractional_investing: true,
+      overrides: {
+        underlyingAnnualPct: 0.2,
+      },
+      underlyingCostBasis: "begin",
+      fees: {
+        components: [
+          { kind: "fixed", amount: 1.59 },
+          { kind: "percentOfBase", ratePct: 0.5, frequency: "monthly", basis: "avg" },
+        ],
+      },
+      transactions: {
+        deposit: null,
+        withdraw: null,
+      },
+    },
+    {
+      id: "brand-new-day-modelportefeuille-zeer-offensief",
+      name: "Brand New Day (Modelportefeuille Zeer offensief)",
+      website: "https://www.brandnewday.nl",
+      type: "fondsaanbieder",
+      countries: ["NL"],
+      lastUpdated: null,
+      minimumInleg: null,
+      duurzaamheid: "Lichtgroen SFDR Artikel 8",
+      aandelenpercentage: 100,
+      fbi: true,
+      service_recurring_investing: true,
+      service_fractional_investing: true,
+      overrides: {
+        underlyingAnnualPct: 0.17,
+      },
+      underlyingCostBasis: "begin",
+      fees: {
+        components: [
+          {
+            kind: "percentOfBase",
+            ratePct: 0.34,
+            frequency: "quarterly", // jaarbasis, per kwartaal in rekening over gemiddelde saldo
+            basis: "avg",
+          },
+        ],
+      },
+      transactions: {
+        deposit: null,
+        withdraw: null,
+      },
+    },
+    {
+      id: "knab-beheerd-zeer-offensief",
+      name: "Knab (Beheerd Beleggen Zeer Offensief)",
+      website: "https://www.knab.nl",
+      type: "fondsaanbieder",
+      countries: ["NL"],
+      lastUpdated: "18-02-2026",
+      minimumInleg: null,
+      duurzaamheid: 'Lichtgroen SFDR Artikel 8',
+      aandelenpercentage: 100,
+      fbi: false,
+      service_recurring_investing: true,
+      service_fractional_investing: true,
+      overrides: {
+        underlyingAnnualPct: 0.18,
+      },
+      underlyingCostBasis: "begin",
+      fees: {
+        components: [
+          {
+            kind: "percentOfBase",
+            basis: "avg",
+            frequency: "quarterly",
+            tiers: {
+              inclusiveUpper: false,
+              apply: "highest",
+              tiers: [
+                { upTo: 25000, ratePct: 0.6 },
+                { upTo: null, ratePct: 0.5 },
+              ],
+            },
+          },
+        ],
+      },
+      transactions: {
+        deposit: { kind: "tieredTransaction", percentRatePct: 0.1 },
+        withdraw: { kind: "tieredTransaction", percentRatePct: 0.1 },
+      },
+    },
+    {
+      id: "ing-eenvoudig-beleggen-dynamic",
+      name: "ING (Eenvoudig Beleggen Dynamic)",
+      website: "https://www.ing.nl",
+      type: "fondsaanbieder",
+      countries: ["NL"],
+      lastUpdated: "18-02-2026",
+      minimumInleg: null,
+      duurzaamheid: 'Lichtgroen SFDR Artikel 8',
+      aandelenpercentage: 90,
+      fbi: false,
+      service_recurring_investing: true,
+      service_fractional_investing: false,
+      overrides: {
+        underlyingAnnualPct: 0.7,
+      },
+      underlyingCostBasis: "begin",
+      fees: {
+        components: [
+          {
+            kind: "percentOfBase",
+            ratePct: 0.4,
+            frequency: "quarterly",
+            basis: "avg",
+          },
+        ],
+      },
+      transactions: {
+        deposit: null,
+        withdraw: null,
+      },
+    },
+    {
+      id: "abn-amro-begeleid-esg-zeer-offensief",
+      name: "ABN AMRO (Begeleid Beleggen ESG Profielfonds Zeer offensief)",
+      website: "https://www.abnamro.nl",
+      type: "fondsaanbieder",
+      countries: ["NL"],
+      lastUpdated: "18-02-2026",
+      minimumInleg: null,
+      duurzaamheid: 'Lichtgroen SFDR Artikel 8',
+      aandelenpercentage: 90,
+      fbi: false,
+      service_recurring_investing: true,
+      service_fractional_investing: true,
+      overrides: {
+        underlyingAnnualPct: 1.12,
+      },
+      underlyingCostBasis: "begin",
+      fees: {
+        components: [
+          {
+            kind: "percentOfBase",
+            ratePct: 0.25, // per jaar
+            frequency: "quarterly",
+            basis: "end",
+          },
+        ],
+      },
+      transactions: {
+        deposit: null,
+        withdraw: null,
+      },
+    },
+    {
+      id: "rabobank-rabo-simpelbeleggen",
+      name: "Rabobank (Rabo SimpelBeleggen)",
+      website: "https://www.rabobank.nl",
+      type: "fondsaanbieder",
+      countries: ["NL"],
+      lastUpdated: null,
+      minimumInleg: null,
+      duurzaamheid: 'Lichtgroen SFDR Artikel 8',
+      aandelenpercentage: 90,
+      fbi: false,
+      service_recurring_investing: true,
+      service_fractional_investing: true,
+      overrides: {
+        underlyingAnnualPct: 0.1,
+      },
+      underlyingCostBasis: "begin",
+      minimumQuarterlyFee: 5, // 0,5% per kwartaal, min. €5 per kwartaal
+      fees: {
+        components: [
+          {
+            kind: "percentOfBase",
+            ratePct: 0.5,
+            frequency: "quarterly",
+            basis: "avg",
+          },
+        ],
+      },
+      transactions: {
+        deposit: null,
+        withdraw: null,
+      },
+    },
+    {
+      id: "rabobank-rabo-beheerd-basis-zeer-offensief",
+      name: "Rabobank (Rabo Beheerd beleggen Basis zeer offensief)",
+      website: "https://www.rabobank.nl",
+      type: "fondsaanbieder",
+      countries: ["NL"],
+      lastUpdated: "18-02-2026",
+      minimumInleg: null,
+      duurzaamheid: 'Lichtgroen SFDR Artikel 8',
+      aandelenpercentage: 90,
+      fbi: false,
+      service_recurring_investing: true,
+      service_fractional_investing: true,
+      overrides: {
+        underlyingAnnualPct: 0.15,
+      },
+      underlyingCostBasis: "begin",
+      fees: {
+        components: [
+          {
+            kind: "percentOfBase",
+            basis: "avg",
+            frequency: "quarterly",
+            minimumQuarterly: 5,
+            tiers: {
+              inclusiveUpper: false,
+              apply: "marginal",
+              tiers: [
+                { upTo: 100000, ratePct: 0.06*4 },
+                { upTo: 500000, ratePct: 0.3*4 },
+                { upTo: 2000000, ratePct: 0.01*4 },
+                { upTo: null, ratePct: 0.0025*4 },
+              ],
+            },
+          },
+          {
+            kind: "percentOfBase",
+            basis: "avg",
+            frequency: "quarterly",
+            tiers: {
+              inclusiveUpper: false,
+              apply: "marginal",
+              tiers: [
+                { upTo: 100000, ratePct: 0.10*4 },
+                { upTo: null, ratePct: 0.09*4 },
+              ],
+            },
+          },
+        ],
+      },
+      transactions: {
+        deposit: null,
+        withdraw: null,
+      },
+    },
+  ];
+
+  /** Landen die in het filter dropdown verschijnen. null = alle landen uit providers. */
+  const FILTER_COUNTRIES = ["NL"];
+
+  const DEFAULTS = {
+    type: "broker", // informational only; provider determines type
+    transactionsPerMonth: 3,
+    beginbedrag: 0,
+    maandbedrag: 150,
+    annualReturnPct: 8.9,
+    underlyingAnnualPct: 0.2084,
+    years: 10,
+    zonderOnderliggendeKosten: false,
+    zonderKosten: false,
+  };
+
+  window.BerekenProviders = {
+    PROVIDERS,
+    DEFAULTS,
+    FILTER_COUNTRIES,
+  };
+})();
+

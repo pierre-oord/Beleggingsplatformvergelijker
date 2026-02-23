@@ -16,6 +16,8 @@
   const onderliggendPct = el("onderliggendPct");
   const zonderOnderliggendeKosten = el("zonderOnderliggendeKosten");
   const zonderKosten = el("zonderKosten");
+  const geavanceerd = el("geavanceerd");
+  const advancedSettings = el("advancedSettings");
   const runBtn = el("runBtn");
   const downloadCsvBtn = el("downloadCsvBtn");
   const summaryEl = el("summary");
@@ -105,8 +107,8 @@
         datasets: [{
           label: "Totale kosten (€)",
           data,
-          backgroundColor: "rgba(59, 130, 246, 0.5)",
-          borderColor: "rgba(59, 130, 246, 0.8)",
+          backgroundColor: "rgba(253, 104, 41, 0.5)",
+          borderColor: "rgba(253, 104, 41, 0.8)",
           borderWidth: 1,
         }],
       },
@@ -120,7 +122,7 @@
             anchor: "end",
             align: "end",
             offset: 4,
-            color: "#e2e8f0",
+            color: "#323232",
             font: { size: 11 },
             formatter: (v) => "€ " + Math.round(v).toLocaleString("nl-NL"),
           },
@@ -128,13 +130,13 @@
         scales: {
           x: {
             ticks: {
-              color: "#94a3b8",
+              color: "#5c6b7a",
               callback: (v) => "€ " + v.toLocaleString("nl-NL", { maximumFractionDigits: 0 }),
             },
-            grid: { color: "rgba(148, 163, 184, 0.12)" },
+            grid: { color: "rgba(0, 24, 40, 0.12)" },
           },
           y: {
-            ticks: { color: "#e2e8f0", maxRotation: 0, autoSkip: true },
+            ticks: { color: "#323232", maxRotation: 0, autoSkip: true },
             grid: { display: false },
           },
         },
@@ -191,7 +193,13 @@
     const d = filterDuurzaamheid?.value || "";
 
     if (t && provider.type !== t) return false;
-    if (land && !(Array.isArray(provider.countries) && provider.countries.includes(land))) return false;
+    if (land) {
+      if (!(Array.isArray(provider.countries) && provider.countries.includes(land))) return false;
+    } else if (Array.isArray(FILTER_COUNTRIES) && FILTER_COUNTRIES.length > 0) {
+      const providerCountries = Array.isArray(provider.countries) ? provider.countries : [];
+      const hasMatchingCountry = FILTER_COUNTRIES.some((c) => providerCountries.includes(c));
+      if (!hasMatchingCountry) return false;
+    }
     if (d && provider.duurzaamheid !== d) return false;
     return true;
   }
@@ -299,6 +307,17 @@
     return cols;
   }
 
+  /** Kolommen voor CSV-export; bevat Bank na Type (niet in UI). */
+  function getCsvProviderCols() {
+    const cols = getVisibleProviderCols();
+    const typeIdx = cols.findIndex((c) => c.key === "providerType");
+    const bankCol = { key: "is_bank", label: "Bank" };
+    if (typeIdx >= 0) {
+      return [...cols.slice(0, typeIdx + 1), bankCol, ...cols.slice(typeIdx + 1)];
+    }
+    return [...cols, bankCol];
+  }
+
   function getSortValue(colKey, provider, rec) {
     if (!rec || rec.error) {
       switch (colKey) {
@@ -310,6 +329,8 @@
           return null;
         case "providerType":
           return provider.type || "";
+        case "is_bank":
+          return provider.is_bank === true ? "Ja" : "Nee";
         case "duurzaamheid":
           return provider.duurzaamheid || "";
         case "gratisInleggenOpnemen":
@@ -481,7 +502,7 @@
 
       cols.forEach((c, idx) => {
         const display = getProviderRowDisplay(c.key, p, rec);
-        const td = (c.key === "website" || YES_NO_COLS.includes(c.key)) ? htmlCell(display) : textCell(display);
+        const td = (c.key === "website" || YES_NO_COLS.includes(c.key) || c.key === "tax_BE_TOB_service" || c.key === "tax_BE_roerende_voorheffing_service" || c.key === "tax_BE_effectentaks_service" || c.key === "tax_BE_reynderstaks_service") ? htmlCell(display) : textCell(display);
         if (["irrAnnual", "totalCosts", "tobCosts", "eindOpnameNetto"].includes(c.key)) td.className = "num";
         tr.appendChild(td);
       });
@@ -580,10 +601,38 @@
           return !provider.transactions?.deposit && !provider.transactions?.withdraw
             ? '<span class="pill pill-ja">Ja</span>'
             : '<span class="pill pill-nee">Nee</span>';
-        case "tax_BE_TOB_service": return provider.tax_BE_TOB_service || "—";
-        case "tax_BE_roerende_voorheffing_service": return provider.tax_BE_roerende_voorheffing_service || "—";
-        case "tax_BE_effectentaks_service": return provider.tax_BE_effectentaks_service || "—";
-        case "tax_BE_reynderstaks_service": return provider.tax_BE_reynderstaks_service || "—";
+        case "tax_BE_TOB_service": {
+          const raw = provider.tax_BE_TOB_service;
+          if (raw == null || raw === "") return "—";
+          const v = String(raw).trim().toLowerCase();
+          if (v === "n.v.t." || v === "ja") return `<span class="pill pill-ja">${raw}</span>`;
+          if (v === "nee") return `<span class="pill pill-nee">${raw}</span>`;
+          return "—";
+        }
+        case "tax_BE_roerende_voorheffing_service": {
+          const raw = provider.tax_BE_roerende_voorheffing_service;
+          if (raw == null || raw === "") return "—";
+          const v = String(raw).trim().toLowerCase();
+          if (v === "n.v.t." || v === "ja") return `<span class="pill pill-ja">${raw}</span>`;
+          if (v === "nee") return `<span class="pill pill-nee">${raw}</span>`;
+          return "—";
+        }
+        case "tax_BE_effectentaks_service": {
+          const raw = provider.tax_BE_effectentaks_service;
+          if (raw == null || raw === "") return "—";
+          const v = String(raw).trim().toLowerCase();
+          if (v === "n.v.t." || v === "ja") return `<span class="pill pill-ja">${raw}</span>`;
+          if (v === "nee") return `<span class="pill pill-nee">${raw}</span>`;
+          return "—";
+        }
+        case "tax_BE_reynderstaks_service": {
+          const raw = provider.tax_BE_reynderstaks_service;
+          if (raw == null || raw === "") return "—";
+          const v = String(raw).trim().toLowerCase();
+          if (v === "n.v.t." || v === "ja") return `<span class="pill pill-ja">${raw}</span>`;
+          if (v === "nee") return `<span class="pill pill-nee">${raw}</span>`;
+          return "—";
+        }
         case "service_recurring_investing":
           return provider.service_recurring_investing === true
             ? '<span class="pill pill-ja">Ja</span>'
@@ -623,15 +672,44 @@
       case "tobCosts": return fmtEURInt.format(s.somTOB || 0);
       case "eindOpnameNetto": return fmtEURInt.format(s.eindOpnameNetto ?? 0);
       case "providerType": return s.providerType || "—";
+      case "is_bank": return provider.is_bank === true ? "Ja" : "Nee";
       case "duurzaamheid": return s.duurzaamheid || "—";
       case "gratisInleggenOpnemen":
         return !provider.transactions?.deposit && !provider.transactions?.withdraw
           ? '<span class="pill pill-ja">Ja</span>'
           : '<span class="pill pill-nee">Nee</span>';
-      case "tax_BE_TOB_service": return provider.tax_BE_TOB_service || "—";
-      case "tax_BE_roerende_voorheffing_service": return provider.tax_BE_roerende_voorheffing_service || "—";
-      case "tax_BE_effectentaks_service": return provider.tax_BE_effectentaks_service || "—";
-      case "tax_BE_reynderstaks_service": return provider.tax_BE_reynderstaks_service || "—";
+      case "tax_BE_TOB_service": {
+        const raw = provider.tax_BE_TOB_service;
+        if (raw == null || raw === "") return "—";
+        const v = String(raw).trim().toLowerCase();
+        if (v === "n.v.t." || v === "ja") return `<span class="pill pill-ja">${raw}</span>`;
+        if (v === "nee") return `<span class="pill pill-nee">${raw}</span>`;
+        return "—";
+      }
+      case "tax_BE_roerende_voorheffing_service": {
+        const raw = provider.tax_BE_roerende_voorheffing_service;
+        if (raw == null || raw === "") return "—";
+        const v = String(raw).trim().toLowerCase();
+        if (v === "n.v.t." || v === "ja") return `<span class="pill pill-ja">${raw}</span>`;
+        if (v === "nee") return `<span class="pill pill-nee">${raw}</span>`;
+        return "—";
+      }
+      case "tax_BE_effectentaks_service": {
+        const raw = provider.tax_BE_effectentaks_service;
+        if (raw == null || raw === "") return "—";
+        const v = String(raw).trim().toLowerCase();
+        if (v === "n.v.t." || v === "ja") return `<span class="pill pill-ja">${raw}</span>`;
+        if (v === "nee") return `<span class="pill pill-nee">${raw}</span>`;
+        return "—";
+      }
+      case "tax_BE_reynderstaks_service": {
+        const raw = provider.tax_BE_reynderstaks_service;
+        if (raw == null || raw === "") return "—";
+        const v = String(raw).trim().toLowerCase();
+        if (v === "n.v.t." || v === "ja") return `<span class="pill pill-ja">${raw}</span>`;
+        if (v === "nee") return `<span class="pill pill-nee">${raw}</span>`;
+        return "—";
+      }
       case "service_recurring_investing":
         return provider.service_recurring_investing === true
           ? '<span class="pill pill-ja">Ja</span>'
@@ -663,7 +741,7 @@
       return s;
     };
     const stripHtml = (s) => String(s ?? "").replace(/<[^>]+>/g, "").trim();
-    const cols = getVisibleProviderCols();
+    const cols = getCsvProviderCols();
     const headers = cols.map((c) => c.label);
     const lines = [headers.map(esc).join(",")];
     for (const p of providers) {
@@ -671,7 +749,7 @@
       const row = cols.map((c) => {
         let val = getProviderRowDisplay(c.key, p, rec);
         if (c.key === "website") val = p.website || "";
-        else if (YES_NO_COLS.includes(c.key)) val = stripHtml(val);
+        else if (YES_NO_COLS.includes(c.key) || c.key === "tax_BE_TOB_service" || c.key === "tax_BE_roerende_voorheffing_service" || c.key === "tax_BE_effectentaks_service" || c.key === "tax_BE_reynderstaks_service") val = stripHtml(val);
         return esc(val);
       });
       lines.push(row.join(","));
@@ -822,11 +900,19 @@
     if (filterType) filterType.addEventListener("change", onChange);
     if (filterLand) filterLand.addEventListener("change", onChange);
     if (filterDuurzaamheid) filterDuurzaamheid.addEventListener("change", onChange);
+
+    if (geavanceerd && advancedSettings) {
+      const toggleAdvanced = () => {
+        advancedSettings.hidden = !geavanceerd.checked;
+      };
+      geavanceerd.addEventListener("change", toggleAdvanced);
+      toggleAdvanced();
+    }
   }
 
   // Add a tiny HR style via JS (keeps CSS minimal)
   const style = document.createElement("style");
-  style.textContent = `.hr{border:0;border-top:1px solid rgba(148,163,184,.18);margin:8px 0}`;
+  style.textContent = `.hr{border:0;border-top:1px solid rgba(0,24,40,.12);margin:8px 0}`;
   document.head.appendChild(style);
 
   setDefaults();

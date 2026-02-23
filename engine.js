@@ -42,7 +42,7 @@
       case "fixedPerTransaction":
         return Math.max(0, clampNumber(spec.amount, 0));
       case "tieredTransaction": {
-        // Supports fixed and/or percent, each optionally tiered. Optioneel minimumAmount.
+        // Supports fixed and/or percent, each optionally tiered. Optioneel minimumAmount, maximumAmount.
         let total = 0;
         if (spec.fixedTiers && Array.isArray(spec.fixedTiers.tiers)) {
           total += tieredFixedFee(spec.fixedTiers, a);
@@ -56,7 +56,9 @@
           total += a * (Math.max(0, clampNumber(spec.percentRatePct, 0)) / 100);
         }
         const minAmount = spec.minimumAmount != null ? Math.max(0, clampNumber(spec.minimumAmount, 0)) : null;
-        return minAmount != null ? Math.max(total, minAmount) : total;
+        let result = minAmount != null ? Math.max(total, minAmount) : total;
+        const maxAmount = spec.maximumAmount != null ? Math.max(0, clampNumber(spec.maximumAmount, 0)) : null;
+        return maxAmount != null ? Math.min(result, maxAmount) : result;
       }
       case "rebelTieredFixed": {
         // "Slechts 1 EUR tot 250 EUR / Van 250,01 EUR tot 1.000 EUR: 2 EUR /
@@ -93,6 +95,18 @@
 
     const nn = Math.max(1, Math.floor(clampNumber(n, 1)));
     const per = Math.max(0, grossAmount) / nn;
+
+    // Eerste N transacties gratis, daarna percentage (bijv. Revolut Premium)
+    if (spec.kind === "freeFirstNThenPercent") {
+      const freeCount = Math.max(0, Math.floor(clampNumber(spec.freeTransactionCount, 0)));
+      const ratePct = Math.max(0, clampNumber(spec.percentRatePct, 0)) / 100;
+      let total = 0;
+      for (let i = 0; i < nn; i++) {
+        if (i >= freeCount) total += per * ratePct;
+      }
+      return total;
+    }
+
     let total = 0;
     for (let i = 0; i < nn; i++) total += feeForOneTransaction(spec, per);
     return total;
@@ -341,7 +355,8 @@
       // Belasting TOB over inleg (initiële inleg + storting)
       let belastingTOB = 0;
       let saldoNaTOB = saldoNaS1;
-      if (!ignoreAllCosts && hasTOB) {
+      const tobOnDeposit = provider.tax_BE_TOB_deposit === true;
+      if (!ignoreAllCosts && hasTOB && tobOnDeposit) {
         const inlegBruto = initInleg + storting;
         if (inlegBruto > 0 && tobRate > 0 && tobMax > 0) {
           if (providerType === "broker" && n > 1) {
@@ -435,7 +450,8 @@
       // Belasting TOB over opname (laatste maand, na tx-opname)
       let belastingTOBOpname = 0;
       let saldoNaTOBOpname = saldoNaS6;
-      if (isLast && !ignoreAllCosts && hasTOB) {
+      const tobOnWithdrawal = provider.tax_BE_TOB_withdrawal === true;
+      if (isLast && !ignoreAllCosts && hasTOB && tobOnWithdrawal) {
         const opnameBasis = Math.max(0, saldoNaS6);
         if (opnameBasis > 0 && tobRate > 0 && tobMax > 0) {
           if (providerType === "broker" && n > 1) {

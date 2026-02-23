@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Beleggingsplatforms vergelijken</title>
     <link rel="stylesheet" href="./styles.css" />
+    <meta name="robots" content="noindex, nofollow">
+
   </head>
   <body>
     <div class="container">
@@ -20,29 +22,30 @@
 
       <section class="grid">
         <div class="card">
+          <h2>Filters</h2>
+          <div class="row-filters">
+            <label>
+              Type
+              <select id="filterType" class="filterSelect"></select>
+            </label>
+            <label class="filter-label">
+              <span>Land</span>
+              <div class="filter-inline">
+                <select id="filterLand" class="filterSelect"></select>
+                <span id="tobInfo" class="small muted filter-info" style="display: none;">
+                  Waar van toepassing is TOB-belasting toegepast.
+                </span>
+              </div>
+            </label>
+            <label>
+              Duurzaamheid
+              <select id="filterDuurzaamheid" class="filterSelect"></select>
+            </label>
+          </div>
+
           <h2>Instellingen</h2>
           <form id="form" class="form">
-            <div class="row3">
-              <label>
-                Filter: Type
-                <select id="filterType" class="filterSelect"></select>
-              </label>
-              <label class="filter-label">
-                <span>Filter: Land</span>
-                <div class="filter-inline">
-                  <select id="filterLand" class="filterSelect"></select>
-                  <span id="tobInfo" class="small muted filter-info" style="display: none;">
-                    Waar van toepassing is TOB-belasting toegepast.
-                  </span>
-                </div>
-              </label>
-              <label>
-                Filter: Duurzaamheid
-                <select id="filterDuurzaamheid" class="filterSelect"></select>
-              </label>
-            </div>
-
-            <div class="row">
+            <div class="row row-main">
               <label>
                 Beginbedrag (€)
                 <input id="beginbedrag" type="number" step="0.01" min="0" value="0" />
@@ -51,20 +54,18 @@
                 Maandbedrag (€)
                 <input id="maandbedrag" type="number" step="0.01" min="0" value="200" />
               </label>
-            </div>
-
-            <div class="row">
               <label>
                 Aantal jaren
                 <input id="jaren" type="number" step="1" min="1" value="10" />
               </label>
-              <label>
-                Transacties per storting/opname (alleen broker)
-                <input id="transacties" type="number" step="1" min="1" value="3" />
-              </label>
             </div>
 
-            <div class="row">
+            <label class="checkbox checkbox-geavanceerd">
+              <input id="geavanceerd" type="checkbox" />
+              Geavanceerd
+            </label>
+
+            <div id="advancedSettings" class="advanced-settings" hidden>
               <label>
                 Rendement p.j. (%)
                 <input id="rendementPct" type="number" step="0.01" value="8.9" />
@@ -73,14 +74,15 @@
                 Onderliggende kosten p.j. (%) (alleen broker)
                 <input id="onderliggendPct" type="number" step="0.001" value="0.21" />
               </label>
-            </div>
-
-            <div class="row">
-              <label class="checkbox">
+              <label>
+                Transacties per storting/opname (alleen broker)
+                <input id="transacties" type="number" step="1" min="1" value="3" />
+              </label>
+              <label class="checkbox checkbox-full-width">
                 <input id="zonderOnderliggendeKosten" type="checkbox" />
                 Bereken zonder onderliggende kosten
               </label>
-              <label class="checkbox">
+              <label class="checkbox checkbox-full-width">
                 <input id="zonderKosten" type="checkbox" />
                 Bereken zonder aanbieder kosten
               </label>

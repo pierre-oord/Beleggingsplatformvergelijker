@@ -1,13 +1,15 @@
-/* Minimal, readable UI (no deps) */
+/* Blauw kleurenschema (licht thema) */
 :root {
-  --bg: #0b0f17;
-  --card: #111827;
-  --muted: #94a3b8;
-  --text: #e5e7eb;
-  --border: rgba(148, 163, 184, 0.18);
-  --primary: #3b82f6;
-  --primary-2: #2563eb;
-  --danger: #ef4444;
+  --bg-gradient: #E3EDF5;
+  --bg-accent: #D4E4F2;
+  --card: #ffffff;
+  --muted: #5c6b7a;
+  --text: #323232;
+  --heading: #001828;
+  --border: rgba(0, 24, 40, 0.12);
+  --primary: #FD6829;
+  --primary-hover: #e55a1f;
+  --danger: #dc2626;
   --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
   --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
@@ -27,9 +29,10 @@ body {
   margin: 0;
   font-family: var(--sans);
   color: var(--text);
-  background: radial-gradient(1200px 600px at 20% -10%, rgba(59, 130, 246, 0.28), transparent 60%),
-    radial-gradient(800px 400px at 80% 0%, rgba(16, 185, 129, 0.14), transparent 55%),
-    var(--bg);
+  background:
+    radial-gradient(ellipse 100% 60% at 30% -10%, rgba(212, 228, 242, 0.6), transparent 55%),
+    radial-gradient(ellipse 80% 50% at 75% 0%, rgba(227, 237, 245, 0.5), transparent 50%),
+    linear-gradient(180deg, #E8F2F8 0%, #F0F7FC 40%, #FAFCFE 100%);
   background-attachment: fixed;
 }
 
@@ -37,13 +40,14 @@ h1 {
   font-size: 20px;
   margin: 0 0 6px 0;
   letter-spacing: 0.2px;
+  color: var(--heading);
 }
 
 h2 {
   font-size: 14px;
   margin: 0 0 12px 0;
   letter-spacing: 0.2px;
-  color: #f3f4f6;
+  color: var(--heading);
 }
 
 .container {
@@ -75,7 +79,7 @@ h2 {
 
 .header-intro .intro-disclaimer {
   font-size: 13px;
-  color: rgba(148, 163, 184, 0.85);
+  color: var(--muted);
 }
 
 .header-actions {
@@ -107,12 +111,11 @@ h2 {
 }
 
 .card {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 40%),
-    var(--card);
+  background: #ffffff;
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 14px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 20px rgba(0, 24, 40, 0.08);
 }
 
 .form-actions {
@@ -151,7 +154,7 @@ h2 {
 
 .row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 10px;
 }
 
@@ -161,13 +164,49 @@ h2 {
   gap: 10px;
 }
 
+.row-filters {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.row-main {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.advanced-settings {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 10px;
+  justify-items: start;
+}
+
+.advanced-settings[hidden] {
+  display: none !important;
+}
+
+.checkbox-geavanceerd {
+  margin-top: 4px;
+}
+
+.advanced-settings .checkbox-full-width {
+  grid-column: 1 / -1;
+}
+
 .filter-inline {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.filterSelect {
+.filterSelect,
+.card input[type="number"],
+.card input[type="text"],
+.card select {
   width: 220px;
   max-width: 100%;
 }
@@ -183,13 +222,22 @@ h2 {
   .row3 {
     grid-template-columns: 1fr;
   }
+  .row-filters {
+    grid-template-columns: 1fr;
+  }
+  .row-main {
+    grid-template-columns: 1fr;
+  }
+  .advanced-settings {
+    grid-template-columns: 1fr;
+  }
 }
 
 label {
   display: grid;
   gap: 6px;
   font-size: 12px;
-  color: #cbd5e1;
+  color: var(--text);
 }
 
 input,
@@ -204,7 +252,7 @@ select {
   padding: 10px 10px;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: rgba(15, 23, 42, 0.8);
+  background: #ffffff;
   color: var(--text);
   outline: none;
 }
@@ -225,7 +273,7 @@ select {
   padding: 8px 10px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: rgba(15, 23, 42, 0.35);
+  background: #ffffff;
 }
 
 .checkbox input {
@@ -239,7 +287,7 @@ select {
 
 button {
   border: 1px solid var(--border);
-  background: rgba(15, 23, 42, 0.6);
+  background: #ffffff;
   color: var(--text);
   padding: 10px 12px;
   border-radius: 12px;
@@ -247,16 +295,19 @@ button {
 }
 
 button.primary {
-  background: linear-gradient(180deg, rgba(59, 130, 246, 0.95), rgba(37, 99, 235, 0.95));
-  border-color: rgba(59, 130, 246, 0.55);
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
 }
 
 button.primary:hover {
-  filter: brightness(1.03);
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
 }
 
 button.ghost:hover {
-  border-color: rgba(148, 163, 184, 0.32);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 button:disabled {
@@ -272,10 +323,10 @@ button:disabled {
 }
 
 .summary .k {
-  color: #cbd5e1;
+  color: var(--muted);
 }
 .summary .v {
-  color: #f8fafc;
+  color: var(--text);
   font-family: var(--mono);
 }
 
@@ -283,7 +334,7 @@ button:disabled {
   overflow: auto;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: rgba(2, 6, 23, 0.35);
+  background: #ffffff;
 }
 
 table {
@@ -295,25 +346,26 @@ table {
 th,
 td {
   padding: 10px 10px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  border-bottom: 1px solid var(--border);
   vertical-align: top;
   font-size: 12px;
   white-space: nowrap;
+  color: var(--text);
 }
 
 thead th {
   position: sticky;
   top: 0;
   z-index: 2;
-  background: rgba(15, 23, 42, 0.92);
-  color: #e2e8f0;
+  background: #ffffff;
+  color: var(--heading);
   text-align: left;
 }
 
 tfoot td {
   position: sticky;
   bottom: 0;
-  background: rgba(15, 23, 42, 0.92);
+  background: #ffffff;
   z-index: 1;
   font-weight: 600;
 }
@@ -328,39 +380,39 @@ tfoot td {
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(59, 130, 246, 0.12);
-  color: #bfdbfe;
+  border: 1px solid rgba(0, 40, 80, 0.25);
+  background: rgba(0, 40, 80, 0.08);
+  color: var(--heading);
   margin-left: 8px;
 }
 
 .pill-danger {
-  border-color: rgba(248, 113, 113, 0.65);
-  background: rgba(248, 113, 113, 0.14);
-  color: #fecaca;
+  border-color: rgba(239, 68, 68, 0.65);
+  background: rgba(239, 68, 68, 0.18);
+  color: #dc2626;
 }
 
 .pill-ja {
   margin-left: 0;
   border-color: rgba(34, 197, 94, 0.6);
   background: rgba(34, 197, 94, 0.18);
-  color: #86efac;
+  color: #16a34a;
 }
 
 .pill-nee {
   margin-left: 0;
   border-color: rgba(239, 68, 68, 0.6);
   background: rgba(239, 68, 68, 0.18);
-  color: #fecaca;
+  color: #dc2626;
 }
 
 .link-website {
-  color: #fff;
+  color: var(--primary);
   text-decoration: underline;
 }
 
 .link-website:hover {
-  color: #f8fafc;
+  color: var(--primary-hover);
 }
 
 tr.clickable {
@@ -368,7 +420,7 @@ tr.clickable {
 }
 
 tr.clickable:hover td {
-  background: rgba(59, 130, 246, 0.06);
+  background: rgba(253, 104, 41, 0.06);
 }
 
 th.sortable {
@@ -389,7 +441,7 @@ th.sortable {
 .modal-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(2, 6, 23, 0.72);
+  background: rgba(0, 24, 40, 0.4);
   backdrop-filter: blur(6px);
 }
 
@@ -401,12 +453,11 @@ th.sortable {
   max-height: calc(100vh - 24px);
   margin: 12px auto;
   overflow: auto;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 40%),
-    var(--card);
+  background: #ffffff;
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 14px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 20px 60px rgba(0, 24, 40, 0.2);
 }
 
 .modal-header {
@@ -419,7 +470,7 @@ th.sortable {
 
 .modal-title {
   font-size: 14px;
-  color: #f3f4f6;
+  color: var(--heading);
   letter-spacing: 0.2px;
 }
 
@@ -444,7 +495,7 @@ th.sortable {
 .footer-section h3 {
   font-size: 13px;
   font-weight: 600;
-  color: #e2e8f0;
+  color: var(--heading);
   margin: 0 0 8px 0;
   letter-spacing: 0.3px;
 }
@@ -460,15 +511,15 @@ th.sortable {
 .footer-note {
   font-size: 13px;
   font-style: italic;
-  color: rgba(148, 163, 184, 0.9);
+  color: var(--muted);
 }
 
 .footer.prose a {
-  color: #93c5fd;
+  color: var(--primary);
   text-decoration: underline;
 }
 
 .footer.prose a:hover {
-  color: #bfdbfe;
+  color: var(--primary-hover);
 }
 

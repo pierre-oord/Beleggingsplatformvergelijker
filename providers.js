@@ -1484,7 +1484,7 @@
   ];
 
   /** Landen die in het filter dropdown verschijnen. null = alle landen uit providers. */
-  const FILTER_COUNTRIES = ["NL", "BE"];
+  const FILTER_COUNTRIES = ["NL"];
 
   const DEFAULTS = {
     type: "broker", // informational only; provider determines type

@@ -56,9 +56,9 @@
   }
 
   const DUURZAAMHEID_OPTIONS = [
-    "Grijs SFDR Artikel 6",
-    "Lichtgroen SFDR Artikel 8",
-    "Donkergroen SFDR Artikel 9",
+    "Grijs",
+    "Lichtgroen",
+    "Donkergroen",
   ];
 
   function setDefaults() {
@@ -453,9 +453,21 @@
 
   function ensureProvidersHeader() {
     if (!providersHead) return;
+    const table = providersHead.parentElement;
+    const colgroup = table?.querySelector("colgroup");
+    const cols = getVisibleProviderCols();
+    if (colgroup) {
+      colgroup.innerHTML = "";
+      cols.forEach((c, i) => {
+        const col = document.createElement("col");
+        if (i === 0) col.style.width = "60vw";
+        else col.style.width = "95px";
+        colgroup.appendChild(col);
+      });
+    }
     providersHead.innerHTML = "";
     const tr = document.createElement("tr");
-    for (const c of getVisibleProviderCols()) {
+    for (const c of cols) {
       const th = document.createElement("th");
       let label = c.label;
       if (c.key === sortKey) {

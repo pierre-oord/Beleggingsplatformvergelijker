@@ -542,9 +542,9 @@
     // Provider meta (informational only; no calculations depend on these)
     const minimumInleg = provider.minimumInleg == null ? null : Math.max(0, clampNumber(provider.minimumInleg, 0));
     const duurzaamheidAllowed = [
-      "Grijs SFDR Artikel 6",
-      "Lichtgroen SFDR Artikel 8",
-      "Donkergroen SFDR Artikel 9",
+      "Grijs",
+      "Lichtgroen",
+      "Donkergroen",
     ];
     const duurzaamheid = duurzaamheidAllowed.includes(provider.duurzaamheid) ? provider.duurzaamheid : null;
     const aandelenpercentage =

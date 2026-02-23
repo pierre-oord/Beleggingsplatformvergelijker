@@ -337,6 +337,30 @@ button:disabled {
   background: #ffffff;
 }
 
+#providersTable {
+  table-layout: fixed;
+}
+#providersTable th:first-child,
+#providersTable td:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#providersTable th:not(:first-child),
+#providersTable td:not(:first-child) {
+  overflow: hidden;
+  white-space: normal;
+}
+
+/* Op grote schermen: natuurlijke kolombreedtes, geen 60vw voor eerste kolom */
+@media (min-width: 1200px) {
+  #providersTable {
+    table-layout: auto;
+  }
+  #providersTable colgroup col:first-child {
+    width: auto !important;
+  }
+}
+
 table {
   width: 100%;
   border-collapse: collapse;

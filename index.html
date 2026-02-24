@@ -86,6 +86,10 @@
                 <input id="zonderKosten" type="checkbox" />
                 Bereken zonder aanbieder kosten
               </label>
+              <label class="checkbox checkbox-full-width">
+                <input id="zonderTOB" type="checkbox" />
+                Bereken zonder TOB-Belasting
+              </label>
             </div>
           </form>
           <div class="small muted">
@@ -97,7 +101,7 @@
           </div>
         </div>
         <div class="card chart-card">
-          <h2 class="chart-title">Totale kosten</h2>
+          <h2 id="chartTitle" class="chart-title">Totale kosten</h2>
           <div class="chart-container">
             <canvas id="costsChart"></canvas>
           </div>

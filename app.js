@@ -34,6 +34,7 @@
   const footEl = el("resultFoot");
   const hideSaldoNaKolommen = el("hideSaldoNaKolommen");
   const costsChartCanvas = el("costsChart");
+  const chartTitleEl = el("chartTitle");
 
   let costsChartInstance = null;
 
@@ -70,6 +71,7 @@
     onderliggendPct.value = String(DEFAULTS.underlyingAnnualPct);
     zonderOnderliggendeKosten.checked = DEFAULTS.zonderOnderliggendeKosten;
     zonderKosten.checked = DEFAULTS.zonderKosten;
+    if (zonderTOB) zonderTOB.checked = DEFAULTS.zonderTOB;
   }
 
   function setSummaryMuted(text) {
@@ -97,15 +99,17 @@
       const rec = resultsById.get(p.id);
       if (!rec || rec.error) return 0;
       const s = rec.res.summary;
-      return (s.somOnderliggendeKosten || 0) + (s.somKosten || 0);
+      return (s.somOnderliggendeKosten || 0) + (s.somKosten || 0) + (s.somTOB || 0);
     });
+    const isBE = (filterLand?.value || "") === "BE";
+    if (chartTitleEl) chartTitleEl.textContent = isBE ? "Kosten en TOB-Belasting" : "Totale kosten";
     if (costsChartInstance) costsChartInstance.destroy();
     costsChartInstance = new Chart(costsChartCanvas, {
       type: "bar",
       data: {
         labels,
         datasets: [{
-          label: "Totale kosten (€)",
+          label: isBE ? "Kosten en TOB-Belasting (€)" : "Totale kosten (€)",
           data,
           backgroundColor: "rgba(253, 104, 41, 0.5)",
           borderColor: "rgba(253, 104, 41, 0.8)",
@@ -270,16 +274,17 @@
       <div><span class="k">Som aanbieder kosten</span>: <span class="v">${fmtEUR.format(s.somKosten)}</span></div>
       <div><span class="k">Totale kosten</span>: <span class="v">${fmtEUR.format(s.somOnderliggendeKosten + s.somKosten)}</span></div>
       <hr class="hr" />
-      <div><span class="k">IRR (jaarlijks)</span>: <span class="v">${irrA}</span></div>
+      <div><span class="k">Rendement</span>: <span class="v">${irrA}</span></div>
     `;
   }
 
   const PROVIDERS_COLS_BASE = [
     { key: "providerName", label: "Aanbieder" },
     { key: "website", label: "Website" },
-    { key: "irrAnnual", label: "IRR (jaarlijks)" },
-    { key: "totalCosts", label: "Totale kosten" },
+    { key: "irrAnnual", label: "Rendement" },
+    { key: "totalCosts", label: "Kosten" },
     { key: "tobCosts", label: "TOB-belasting" },
+    { key: "costsAndTaxes", label: "Kosten en Belastingen" },
     { key: "eindOpnameNetto", label: "Eindsaldo" },
     { key: "providerType", label: "Type" },
     { key: "duurzaamheid", label: "Duurzaamheid" },
@@ -293,17 +298,18 @@
     { key: "minInlegStatus", label: "Min. inleg" },
     { key: "aandelenpercentage", label: "Aandelenpercentage" },
     { key: "fbi", label: "FBI" },
+    { key: "risk_indicator", label: "Risico-indicator" },
     { key: "lastUpdated", label: "Laatst bijgewerkt" },
   ];
 
-  let sortKey = "totalCosts";
-  let sortDir = "asc";
+  let sortKey = "irrAnnual";
+  let sortDir = "desc";
 
   /** Kolommen zichtbaar in de tabel; tax_BE* alleen wanneer land "BE" is gekozen. */
   function getVisibleProviderCols() {
     const isBE = (filterLand?.value || "") === "BE";
     const cols = isBE ? PROVIDERS_COLS_BASE : PROVIDERS_COLS_BASE.filter((c) => !c.key.startsWith("tax_BE"));
-        if (!cols.some((c) => c.key === sortKey)) sortKey = "totalCosts";
+        if (!cols.some((c) => c.key === sortKey)) sortKey = "irrAnnual";
     return cols;
   }
 
@@ -359,6 +365,8 @@
           return typeof provider.aandelenpercentage === "number" ? provider.aandelenpercentage : null;
         case "fbi":
           return provider.fbi === true ? 1 : provider.fbi === false ? 0 : -1;
+        case "risk_indicator":
+          return typeof provider.risk_indicator === "number" ? provider.risk_indicator : null;
         case "lastUpdated":
           return provider.lastUpdated || "";
         case "irrAnnual":
@@ -385,6 +393,8 @@
         return (s.somOnderliggendeKosten || 0) + (s.somKosten || 0);
       case "tobCosts":
         return s.somTOB || 0;
+      case "costsAndTaxes":
+        return (s.somOnderliggendeKosten || 0) + (s.somKosten || 0) + (s.somTOB || 0);
       case "eindOpnameNetto":
         return s.eindOpnameNetto;
       case "providerType":
@@ -417,6 +427,8 @@
         return typeof s.aandelenpercentage === "number" ? s.aandelenpercentage : null;
       case "fbi":
         return s.fbi === true ? 1 : s.fbi === false ? 0 : -1;
+      case "risk_indicator":
+        return typeof s.risk_indicator === "number" ? s.risk_indicator : null;
       case "lastUpdated":
         return s.lastUpdated || "";
       default:
@@ -515,7 +527,7 @@
       cols.forEach((c, idx) => {
         const display = getProviderRowDisplay(c.key, p, rec);
         const td = (c.key === "website" || YES_NO_COLS.includes(c.key) || c.key === "tax_BE_TOB_service" || c.key === "tax_BE_roerende_voorheffing_service" || c.key === "tax_BE_effectentaks_service" || c.key === "tax_BE_reynderstaks_service") ? htmlCell(display) : textCell(display);
-        if (["irrAnnual", "totalCosts", "tobCosts", "eindOpnameNetto"].includes(c.key)) td.className = "num";
+        if (["irrAnnual", "totalCosts", "tobCosts", "costsAndTaxes", "eindOpnameNetto"].includes(c.key)) td.className = "num";
         tr.appendChild(td);
       });
       if (rec && !rec.error) okCount++;
@@ -606,7 +618,7 @@
             ? `<a class="link-website" href="${provider.website}" target="_blank" rel="noopener noreferrer">Website</a>`
             : "—";
         case "minInlegStatus": return "—";
-        case "irrAnnual": case "totalCosts": case "tobCosts": case "eindOpnameNetto": return "—";
+        case "irrAnnual": case "totalCosts": case "tobCosts": case "costsAndTaxes": case "eindOpnameNetto": return "—";
         case "providerType": return provider.type || "—";
         case "duurzaamheid": return provider.duurzaamheid || "—";
         case "gratisInleggenOpnemen":
@@ -664,6 +676,8 @@
             : provider.fbi === false
             ? '<span class="pill pill-nee">Nee</span>'
             : "—";
+        case "risk_indicator":
+          return typeof provider.risk_indicator === "number" ? String(provider.risk_indicator) : "—";
         case "lastUpdated": return provider.lastUpdated || "Onbekend";
         default: return "";
       }
@@ -682,6 +696,7 @@
       case "irrAnnual": return s.irrAnnual == null ? "n.v.t." : fmtPct.format(s.irrAnnual);
       case "totalCosts": return fmtEURInt.format((s.somOnderliggendeKosten || 0) + (s.somKosten || 0));
       case "tobCosts": return fmtEURInt.format(s.somTOB || 0);
+      case "costsAndTaxes": return fmtEURInt.format((s.somOnderliggendeKosten || 0) + (s.somKosten || 0) + (s.somTOB || 0));
       case "eindOpnameNetto": return fmtEURInt.format(s.eindOpnameNetto ?? 0);
       case "providerType": return s.providerType || "—";
       case "is_bank": return provider.is_bank === true ? "Ja" : "Nee";
@@ -741,6 +756,8 @@
           : s.fbi === false
           ? '<span class="pill pill-nee">Nee</span>'
           : "—";
+      case "risk_indicator":
+        return typeof s.risk_indicator === "number" ? String(s.risk_indicator) : "—";
       case "lastUpdated": return s.lastUpdated || "Onbekend";
       default: return "";
     }
@@ -840,7 +857,7 @@
     // Simuleer altijd alle aanbieders; filters bepalen alleen wat je ziet.
     const resultsById = new Map();
 
-    const isTOBEnabled = (filterLand?.value || "") === "BE";
+    const isTOBEnabled = (filterLand?.value || "") === "BE" && !zonderTOB?.checked;
 
     for (const provider of PROVIDERS) {
       try {

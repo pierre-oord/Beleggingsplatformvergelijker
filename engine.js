@@ -206,11 +206,17 @@
           if (frequency === "quarterly" && isQuarterEnd && c.minimumQuarterly != null) {
             fee = Math.max(fee, Math.max(0, clampNumber(c.minimumQuarterly, 0)));
           }
+          if (frequency === "monthly" && c.minimumMonthly != null) {
+            fee = Math.max(fee, Math.max(0, clampNumber(c.minimumMonthly, 0)));
+          }
         } else {
           const rate = clampNumber(c.ratePct, 0) / 100;
           fee = Math.max(0, base) * toMonthlyPortion(rate);
           if (c.maximumMonthly != null) {
             fee = Math.min(fee, Math.max(0, clampNumber(c.maximumMonthly, 0)));
+          }
+          if (c.minimumMonthly != null) {
+            fee = Math.max(fee, Math.max(0, clampNumber(c.minimumMonthly, 0)));
           }
         }
         total += fee;
@@ -562,6 +568,7 @@
       duurzaamheid,
       aandelenpercentage,
       fbi: provider.fbi === true || provider.fbi === false ? provider.fbi : null,
+      risk_indicator: typeof provider.risk_indicator === "number" ? provider.risk_indicator : null,
       months,
       nTransactions: n,
       annualReturnPct: effAnnualReturnPct,

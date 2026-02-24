@@ -16,7 +16,7 @@
       website: "https://www.uptomore.com",
       type: "fondsaanbieder",
       is_bank: false,
-      countries: ["NL", "BE"],
+      countries: ["NL"],
       lastUpdated: "16-02-2026",
       // Extra eigenschappen (informational only; no calculations depend on these)
       minimumInleg: null, // EUR

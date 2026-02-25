@@ -570,6 +570,7 @@
       fbi: provider.fbi === true || provider.fbi === false ? provider.fbi : null,
       risk_indicator: typeof provider.risk_indicator === "number" ? provider.risk_indicator : null,
       dividend: provider.dividend === "accumulating" || provider.dividend === "distributing" ? provider.dividend : null,
+      strategy: provider.strategy === "active" || provider.strategy === "passive" ? provider.strategy : null,
       months,
       nTransactions: n,
       annualReturnPct: effAnnualReturnPct,

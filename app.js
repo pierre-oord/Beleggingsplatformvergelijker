@@ -280,13 +280,13 @@
 
   const PROVIDERS_COLS_BASE = [
     { key: "providerName", label: "Aanbieder" },
-    { key: "website", label: "Website" },
     { key: "irrAnnual", label: "Rendement" },
     { key: "totalCosts", label: "Kosten" },
     { key: "tobCosts", label: "TOB-belasting" },
     { key: "costsAndTaxes", label: "Kosten en Belastingen" },
     { key: "eindOpnameNetto", label: "Eindsaldo" },
     { key: "providerType", label: "Type" },
+    { key: "strategy", label: "Strategie" },
     { key: "dividend", label: "Dividend" },
     { key: "duurzaamheid", label: "Duurzaamheid" },
     { key: "gratisInleggenOpnemen", label: "Gratis inleggen/opnemen" },
@@ -306,13 +306,17 @@
   let sortKey = "irrAnnual";
   let sortDir = "desc";
 
-  /** Kolommen zichtbaar in de tabel; tax_BE* alleen wanneer land "BE" is gekozen; FBI verborgen bij BE. */
+  /** Kolommen zichtbaar: geen land = alles; land niet BE = verberg tax_BE*, tobCosts, costsAndTaxes; land niet NL = verberg fbi. */
   function getVisibleProviderCols() {
-    const isBE = (filterLand?.value || "") === "BE";
+    const land = filterLand?.value || "";
+    const isBE = land === "BE";
+    const isNL = land === "NL";
     let cols = PROVIDERS_COLS_BASE;
+    if (!land) return cols;
     if (!isBE) {
-      cols = cols.filter((c) => !c.key.startsWith("tax_BE"));
-    } else {
+      cols = cols.filter((c) => !c.key.startsWith("tax_BE") && c.key !== "tobCosts" && c.key !== "costsAndTaxes");
+    }
+    if (!isNL) {
       cols = cols.filter((c) => c.key !== "fbi");
     }
     if (!cols.some((c) => c.key === sortKey)) sortKey = "irrAnnual";
@@ -335,8 +339,8 @@
       switch (colKey) {
         case "providerName":
           return provider.name || "";
-        case "website":
-          return provider.website || "";
+        case "strategy":
+          return provider.strategy === "active" || provider.strategy === "passive" ? provider.strategy : "";
         case "minInlegStatus":
           return null;
         case "providerType":
@@ -390,8 +394,8 @@
     switch (colKey) {
       case "providerName":
         return s.providerName || "";
-      case "website":
-        return provider.website || "";
+      case "strategy":
+        return s.strategy === "active" || s.strategy === "passive" ? s.strategy : "";
       case "minInlegStatus":
         if (s.minimumInleg == null || typeof s.firstMonthInleg !== "number") return null;
         return s.firstMonthInleg >= s.minimumInleg;
@@ -536,7 +540,7 @@
 
       cols.forEach((c, idx) => {
         const display = getProviderRowDisplay(c.key, p, rec);
-        const td = (c.key === "website" || YES_NO_COLS.includes(c.key) || c.key === "tax_BE_TOB_service" || c.key === "tax_BE_roerende_voorheffing_service" || c.key === "tax_BE_effectentaks_service" || c.key === "tax_BE_reynderstaks_service") ? htmlCell(display) : textCell(display);
+        const td = (c.key === "providerName" || YES_NO_COLS.includes(c.key) || c.key === "tax_BE_TOB_service" || c.key === "tax_BE_roerende_voorheffing_service" || c.key === "tax_BE_effectentaks_service" || c.key === "tax_BE_reynderstaks_service") ? htmlCell(display) : textCell(display);
         if (["irrAnnual", "totalCosts", "tobCosts", "costsAndTaxes", "eindOpnameNetto"].includes(c.key)) td.className = "num";
         tr.appendChild(td);
       });
@@ -622,11 +626,12 @@
   function getProviderRowDisplay(colKey, provider, rec) {
     if (!rec || rec.error) {
       switch (colKey) {
-        case "providerName": return provider.name || "";
-        case "website":
+        case "providerName":
           return provider.website
-            ? `<a class="link-website" href="${provider.website}" target="_blank" rel="noopener noreferrer">Website</a>`
-            : "—";
+            ? `<a class="link-website" href="${provider.website}" target="_blank" rel="noopener noreferrer">${provider.name || ""}</a>`
+            : (provider.name || "—");
+        case "strategy":
+          return provider.strategy === "active" ? "actief" : provider.strategy === "passive" ? "passief" : "—";
         case "minInlegStatus": return "—";
         case "irrAnnual": case "totalCosts": case "tobCosts": case "costsAndTaxes": case "eindOpnameNetto": return "—";
         case "providerType": return provider.type || "—";
@@ -696,11 +701,12 @@
     }
     const s = rec.res.summary;
     switch (colKey) {
-      case "providerName": return s.providerName || "";
-      case "website":
+      case "providerName":
         return provider.website
-          ? `<a class="link-website" href="${provider.website}" target="_blank" rel="noopener noreferrer">Website</a>`
-          : "—";
+          ? `<a class="link-website" href="${provider.website}" target="_blank" rel="noopener noreferrer">${s.providerName || ""}</a>`
+          : (s.providerName || "—");
+      case "strategy":
+        return s.strategy === "active" ? "actief" : s.strategy === "passive" ? "passief" : "—";
       case "minInlegStatus":
         if (s.minimumInleg == null) return "—";
         if (typeof s.firstMonthInleg !== "number") return "—";
@@ -791,7 +797,7 @@
       const rec = resultsById.get(p.id);
       const row = cols.map((c) => {
         let val = getProviderRowDisplay(c.key, p, rec);
-        if (c.key === "website") val = p.website || "";
+        if (c.key === "providerName") val = stripHtml(val) || p.name || "";
         else if (YES_NO_COLS.includes(c.key) || c.key === "tax_BE_TOB_service" || c.key === "tax_BE_roerende_voorheffing_service" || c.key === "tax_BE_effectentaks_service" || c.key === "tax_BE_reynderstaks_service") val = stripHtml(val);
         return esc(val);
       });

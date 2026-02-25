@@ -62,12 +62,18 @@ h2 {
   justify-content: space-between;
   gap: 16px;
   padding: 10px 0 16px;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--muted);
 }
 
 .header-intro .intro-lead,
 .header-intro .intro-disclaimer {
   margin: 0 0 0.85em 0;
-  line-height: 1.6;
+  line-height: 1.65;
   font-size: 14px;
   color: var(--muted);
 }
@@ -500,7 +506,7 @@ th.sortable {
 
 /* Footer / prose */
 .footer.prose {
-  max-width: 720px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 32px 16px 48px;
   font-size: 14px;
@@ -522,6 +528,14 @@ th.sortable {
   color: var(--heading);
   margin: 0 0 8px 0;
   letter-spacing: 0.3px;
+}
+
+.footer-section h4 {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  margin: 0 0 6px 0;
+  letter-spacing: 0.2px;
 }
 
 .footer-section p {

@@ -287,6 +287,7 @@
     { key: "costsAndTaxes", label: "Kosten en Belastingen" },
     { key: "eindOpnameNetto", label: "Eindsaldo" },
     { key: "providerType", label: "Type" },
+    { key: "dividend", label: "Dividend" },
     { key: "duurzaamheid", label: "Duurzaamheid" },
     { key: "gratisInleggenOpnemen", label: "Gratis inleggen/opnemen" },
     { key: "tax_BE_TOB_service", label: "Tax service TOB" },
@@ -305,11 +306,16 @@
   let sortKey = "irrAnnual";
   let sortDir = "desc";
 
-  /** Kolommen zichtbaar in de tabel; tax_BE* alleen wanneer land "BE" is gekozen. */
+  /** Kolommen zichtbaar in de tabel; tax_BE* alleen wanneer land "BE" is gekozen; FBI verborgen bij BE. */
   function getVisibleProviderCols() {
     const isBE = (filterLand?.value || "") === "BE";
-    const cols = isBE ? PROVIDERS_COLS_BASE : PROVIDERS_COLS_BASE.filter((c) => !c.key.startsWith("tax_BE"));
-        if (!cols.some((c) => c.key === sortKey)) sortKey = "irrAnnual";
+    let cols = PROVIDERS_COLS_BASE;
+    if (!isBE) {
+      cols = cols.filter((c) => !c.key.startsWith("tax_BE"));
+    } else {
+      cols = cols.filter((c) => c.key !== "fbi");
+    }
+    if (!cols.some((c) => c.key === sortKey)) sortKey = "irrAnnual";
     return cols;
   }
 
@@ -367,6 +373,8 @@
           return provider.fbi === true ? 1 : provider.fbi === false ? 0 : -1;
         case "risk_indicator":
           return typeof provider.risk_indicator === "number" ? provider.risk_indicator : null;
+        case "dividend":
+          return provider.dividend === "accumulating" || provider.dividend === "distributing" ? provider.dividend : "";
         case "lastUpdated":
           return provider.lastUpdated || "";
         case "irrAnnual":
@@ -429,6 +437,8 @@
         return s.fbi === true ? 1 : s.fbi === false ? 0 : -1;
       case "risk_indicator":
         return typeof s.risk_indicator === "number" ? s.risk_indicator : null;
+      case "dividend":
+        return s.dividend === "accumulating" || s.dividend === "distributing" ? s.dividend : "";
       case "lastUpdated":
         return s.lastUpdated || "";
       default:
@@ -678,6 +688,8 @@
             : "—";
         case "risk_indicator":
           return typeof provider.risk_indicator === "number" ? String(provider.risk_indicator) : "—";
+        case "dividend":
+          return provider.dividend === "accumulating" ? "Accumulating" : provider.dividend === "distributing" ? "Distributing" : "—";
         case "lastUpdated": return provider.lastUpdated || "Onbekend";
         default: return "";
       }
@@ -758,6 +770,8 @@
           : "—";
       case "risk_indicator":
         return typeof s.risk_indicator === "number" ? String(s.risk_indicator) : "—";
+      case "dividend":
+        return s.dividend === "accumulating" ? "Accumulating" : s.dividend === "distributing" ? "Distributing" : "—";
       case "lastUpdated": return s.lastUpdated || "Onbekend";
       default: return "";
     }

@@ -569,6 +569,7 @@
       aandelenpercentage,
       fbi: provider.fbi === true || provider.fbi === false ? provider.fbi : null,
       risk_indicator: typeof provider.risk_indicator === "number" ? provider.risk_indicator : null,
+      dividend: provider.dividend === "accumulating" || provider.dividend === "distributing" ? provider.dividend : null,
       months,
       nTransactions: n,
       annualReturnPct: effAnnualReturnPct,

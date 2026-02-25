@@ -549,6 +549,31 @@
     }
 
     setProvidersHint(`Resultaten: ${okCount}/${providers.length} aanbieders (klik voor details).`);
+    updateTableScrollHint();
+  }
+
+  function updateTableScrollHint() {
+    const wrap = document.getElementById("providersTableWrap");
+    const container = wrap?.closest(".providers-table-container");
+    if (!wrap || !container) return;
+
+    const update = () => {
+      const canScroll = wrap.scrollWidth > wrap.clientWidth;
+      const atEnd = wrap.scrollLeft >= wrap.scrollWidth - wrap.clientWidth - 2;
+      container.classList.toggle("has-scroll", canScroll && !atEnd);
+      container.classList.toggle("scrolled-end", atEnd);
+    };
+
+    if (!wrap._scrollHintWired) {
+      wrap._scrollHintWired = true;
+      wrap.addEventListener("scroll", () => {
+        container.classList.add("hint-dismissed");
+        update();
+      });
+      window.addEventListener("resize", () => requestAnimationFrame(update));
+    }
+
+    requestAnimationFrame(update);
   }
 
   const TABLE_COLS = [
@@ -973,6 +998,7 @@
   wireModal();
   wireProvidersClick();
   wireFilters();
+  updateTableScrollHint();
 
   if (hideSaldoNaKolommen) {
     hideSaldoNaKolommen.addEventListener("change", () => {

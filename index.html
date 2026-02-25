@@ -112,12 +112,16 @@
           <button id="downloadCsvBtn" class="ghost" disabled>Download CSV</button>
         </div>
         <div class="small muted" id="providersHint">Klik op “Bereken” om alle aanbieders te tonen.</div>
-        <div class="table-wrap">
-          <table id="providersTable">
+        <div class="providers-table-container">
+          <div class="table-wrap" id="providersTableWrap">
+            <table id="providersTable">
             <colgroup id="providersColgroup"></colgroup>
             <thead id="providersHead"></thead>
             <tbody id="providersBody"></tbody>
-          </table>
+            </table>
+          </div>
+          <div class="table-scroll-shadow" id="tableScrollShadow" aria-hidden="true"></div>
+          <div class="table-swipe-hint" id="tableSwipeHint">Swipe voor meer kolommen →</div>
         </div>
       </section>
     </div>

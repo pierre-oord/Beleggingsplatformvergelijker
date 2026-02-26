@@ -295,8 +295,7 @@
     const providerType = provider.type;
     const n = providerType === "broker" ? Math.max(1, Math.floor(clampNumber(transactionsPerMonth, 3))) : 1;
 
-    const effAnnualReturnPct =
-      provider.overrides?.annualReturnPct != null ? provider.overrides.annualReturnPct : annualReturnPct;
+    const effAnnualReturnPct = annualReturnPct;
     const effUnderlyingAnnualPct =
       provider.overrides?.underlyingAnnualPct != null ? provider.overrides.underlyingAnnualPct : underlyingAnnualPct;
 

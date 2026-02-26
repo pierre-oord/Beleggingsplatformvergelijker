@@ -39,7 +39,6 @@
       service_recurring_investing: true,
       service_fractional_investing: true,
       overrides: {
-        annualReturnPct: 8.9,
         underlyingAnnualPct: 0.2084,
       },
       underlyingCostBasis: "begin", // begin | avg | end
@@ -1792,7 +1791,6 @@
     transactionsPerMonth: 3,
     beginbedrag: 0,
     maandbedrag: 150,
-    annualReturnPct: 8.9,
     underlyingAnnualPct: 0.2084,
     years: 10,
     zonderOnderliggendeKosten: false,

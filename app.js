@@ -67,7 +67,7 @@
     maandbedrag.value = String(DEFAULTS.maandbedrag);
     jaren.value = String(DEFAULTS.years);
     transacties.value = String(DEFAULTS.transactionsPerMonth);
-    rendementPct.value = String(DEFAULTS.annualReturnPct);
+    rendementPct.value = String(DEFAULTS.annualReturnPct ?? 8.9);
     onderliggendPct.value = String(DEFAULTS.underlyingAnnualPct);
     zonderOnderliggendeKosten.checked = DEFAULTS.zonderOnderliggendeKosten;
     zonderKosten.checked = DEFAULTS.zonderKosten;

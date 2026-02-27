@@ -204,6 +204,33 @@ h2 {
   grid-column: 1 / -1;
 }
 
+.advanced-settings-subheader {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 16px 0 8px 0;
+  color: var(--heading);
+  grid-column: 1 / -1;
+}
+
+.advanced-settings-subheader:first-of-type {
+  margin-top: 0;
+}
+
+.advanced-settings-overige {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  align-items: center;
+}
+
+.advanced-settings-overige .checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
 .filter-inline {
   display: flex;
   align-items: center;

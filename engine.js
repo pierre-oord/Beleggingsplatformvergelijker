@@ -284,6 +284,8 @@
     years,
     annualReturnPct,
     underlyingAnnualPct,
+    underlyingDepositPercentage,
+    underlyingWithdrawalPercentage,
     transactionsPerMonth,
     zonderOnderliggendeKosten,
     zonderKosten,
@@ -298,6 +300,14 @@
     const effAnnualReturnPct = annualReturnPct;
     const effUnderlyingAnnualPct =
       provider.overrides?.underlyingAnnualPct != null ? provider.overrides.underlyingAnnualPct : underlyingAnnualPct;
+    const effUnderlyingDepositPct =
+      provider.type === "broker"
+        ? (underlyingDepositPercentage != null ? clampNumber(underlyingDepositPercentage, 0) : 0)
+        : (provider.underlyingDepositPercentage != null ? clampNumber(provider.underlyingDepositPercentage, 0) : 0);
+    const effUnderlyingWithdrawalPct =
+      provider.type === "broker"
+        ? (underlyingWithdrawalPercentage != null ? clampNumber(underlyingWithdrawalPercentage, 0) : 0)
+        : (provider.underlyingWithdrawalPercentage != null ? clampNumber(provider.underlyingWithdrawalPercentage, 0) : 0);
 
     const monthlyReturnRate = toMonthlyReturnRateFromAnnualPct(effAnnualReturnPct);
     const underlyingMonthlyRate = toMonthlyUnderlyingCostRate(effUnderlyingAnnualPct);
@@ -392,7 +402,13 @@
         return saldoNaTOB + rendement / 2;
       })();
 
-      const onderliggendeKosten = ignoreUnderlying ? 0 : -Math.max(0, onderliggendeKostenBase) * underlyingMonthlyRate;
+      const onderliggendeKostenBalance = ignoreUnderlying ? 0 : -Math.max(0, onderliggendeKostenBase) * underlyingMonthlyRate;
+      const inlegVoorDepositKosten = m === 1 ? initInleg + storting : storting;
+      const onderliggendeInlegkosten =
+        ignoreUnderlying || effUnderlyingDepositPct <= 0
+          ? 0
+          : -Math.max(0, inlegVoorDepositKosten) * (effUnderlyingDepositPct / 100);
+      const onderliggendeKosten = onderliggendeKostenBalance + onderliggendeInlegkosten;
       const saldoNaS3 = saldoNaS2 + onderliggendeKosten;
 
       // Fee-basis moet TOB meenemen (S0+S1+TOB+...)
@@ -452,12 +468,18 @@
 
       const saldoNaS6 = saldoNaS5 + txOpnameBedrag;
 
-      // Belasting TOB over opname (laatste maand, na tx-opname)
+      const onderliggendeOpnamekosten =
+        !isLast || ignoreUnderlying || effUnderlyingWithdrawalPct <= 0
+          ? 0
+          : -Math.max(0, opnameBruto) * (effUnderlyingWithdrawalPct / 100);
+      const saldoNaS6MetOpnameKosten = saldoNaS6 + onderliggendeOpnamekosten;
+
+      // Belasting TOB over opname (laatste maand, na tx-opname en onderliggende opnamekosten)
       let belastingTOBOpname = 0;
-      let saldoNaTOBOpname = saldoNaS6;
+      let saldoNaTOBOpname = saldoNaS6MetOpnameKosten;
       const tobOnWithdrawal = provider.tax_BE_TOB_withdrawal === true;
       if (isLast && !ignoreAllCosts && hasTOB && tobOnWithdrawal) {
-        const opnameBasis = Math.max(0, saldoNaS6);
+        const opnameBasis = Math.max(0, saldoNaS6MetOpnameKosten);
         if (opnameBasis > 0 && tobRate > 0 && tobMax > 0) {
           if (providerType === "broker" && n > 1) {
             const per = opnameBasis / n;
@@ -472,7 +494,7 @@
             const capped = Math.min(taxIdeal, tobMax);
             belastingTOBOpname = -capped;
           }
-          saldoNaTOBOpname = saldoNaS6 + belastingTOBOpname;
+          saldoNaTOBOpname = saldoNaS6MetOpnameKosten + belastingTOBOpname;
         }
       }
 
@@ -500,6 +522,7 @@
         saldoNaS5,
         txOpnameBedrag,
         saldoNaS6,
+        onderliggendeOpnamekosten,
         belastingTOBOpname,
         saldoNaTOBOpname,
         opnameDelta,
@@ -510,7 +533,7 @@
       totals.initInleg += initInleg;
       totals.storting += storting;
       totals.rendement += rendement;
-      totals.onderliggendeKosten += onderliggendeKosten;
+      totals.onderliggendeKosten += onderliggendeKosten + onderliggendeOpnamekosten;
       totals.kosten += kostenBedrag;
       totals.txStorting += txStortingBedrag;
       totals.txOpname += txOpnameBedrag;
@@ -574,6 +597,8 @@
       nTransactions: n,
       annualReturnPct: effAnnualReturnPct,
       underlyingAnnualPct: effUnderlyingAnnualPct,
+      underlyingDepositPercentage: effUnderlyingDepositPct,
+      underlyingWithdrawalPercentage: effUnderlyingWithdrawalPct,
       totalInleg,
       firstMonthInleg,
       eindOpnameNetto: totals.opnameNetto,

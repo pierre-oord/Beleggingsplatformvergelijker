@@ -12,6 +12,8 @@
   const maandbedrag = el("maandbedrag");
   const jaren = el("jaren");
   const transacties = el("transacties");
+  const onderliggendeInlegkostenPct = el("onderliggendeInlegkostenPct");
+  const onderliggendeOpnamekostenPct = el("onderliggendeOpnamekostenPct");
   const rendementPct = el("rendementPct");
   const onderliggendPct = el("onderliggendPct");
   const zonderOnderliggendeKosten = el("zonderOnderliggendeKosten");
@@ -67,6 +69,8 @@
     maandbedrag.value = String(DEFAULTS.maandbedrag);
     jaren.value = String(DEFAULTS.years);
     transacties.value = String(DEFAULTS.transactionsPerMonth);
+    if (onderliggendeInlegkostenPct) onderliggendeInlegkostenPct.value = String(DEFAULTS.underlyingDepositPercentage ?? 0);
+    if (onderliggendeOpnamekostenPct) onderliggendeOpnamekostenPct.value = String(DEFAULTS.underlyingWithdrawalPercentage ?? 0);
     rendementPct.value = String(DEFAULTS.annualReturnPct ?? 8.9);
     onderliggendPct.value = String(DEFAULTS.underlyingAnnualPct);
     zonderOnderliggendeKosten.checked = DEFAULTS.zonderOnderliggendeKosten;
@@ -265,6 +269,8 @@
       <div><span class="k">Transacties per storting/opname</span>: <span class="v">${transactiesPerStortingOpname}</span></div>
       <div><span class="k">Rendement p.j.</span>: <span class="v">${fmtNumKomma(s.annualReturnPct, 6)}%</span></div>
       <div><span class="k">Onderliggende kosten p.j.</span>: <span class="v">${fmtNumKomma(s.underlyingAnnualPct, 6)}%</span></div>
+      <div><span class="k">Onderliggende inlegkosten (%) (alleen broker)</span>: <span class="v">${fmtNumKomma(s.underlyingDepositPercentage ?? 0, 6)}%</span></div>
+      <div><span class="k">Onderliggende opnamekosten (%) (alleen broker)</span>: <span class="v">${fmtNumKomma(s.underlyingWithdrawalPercentage ?? 0, 6)}%</span></div>
       <hr class="hr" />
       <div><span class="k">Totale inleg</span>: <span class="v">${fmtEUR.format(s.totalInleg)}</span></div>
       <div><span class="k">Eindsaldo</span>: <span class="v">${fmtEUR.format(s.eindOpnameNetto)}</span></div>
@@ -620,7 +626,8 @@
     for (const r of res.rows) {
       const tr = document.createElement("tr");
       for (const c of cols) {
-        const v = r[c.key];
+        let v = r[c.key];
+        if (c.key === "onderliggendeKosten") v = (r.onderliggendeKosten ?? 0) + (r.onderliggendeOpnamekosten ?? 0);
         if (c.kind === "money") tr.appendChild(moneyCell(v));
         else tr.appendChild(textCell(v));
       }
@@ -913,6 +920,8 @@
           years: Number(jaren.value),
           annualReturnPct: Number(rendementPct.value),
           underlyingAnnualPct: Number(onderliggendPct.value),
+          underlyingDepositPercentage: Number(onderliggendeInlegkostenPct?.value ?? 0),
+          underlyingWithdrawalPercentage: Number(onderliggendeOpnamekostenPct?.value ?? 0),
           transactionsPerMonth: provider.transactionsPerMonth != null ? provider.transactionsPerMonth : Number(transacties.value),
           zonderOnderliggendeKosten: Boolean(zonderOnderliggendeKosten.checked),
           zonderKosten: Boolean(zonderKosten.checked),

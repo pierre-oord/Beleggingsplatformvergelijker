@@ -199,7 +199,8 @@ h2 {
   margin-top: 4px;
 }
 
-.advanced-settings .checkbox-full-width {
+.advanced-settings .checkbox-full-width,
+.advanced-settings .advanced-settings-full-row {
   grid-column: 1 / -1;
 }
 

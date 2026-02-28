@@ -144,7 +144,7 @@
             grid: { color: "rgba(0, 24, 40, 0.12)" },
           },
           y: {
-            ticks: { color: "#323232", maxRotation: 0, autoSkip: true },
+            ticks: { color: "#323232", maxRotation: 0, autoSkip: false },
             grid: { display: false },
           },
         },
@@ -269,6 +269,7 @@
       <div><span class="k">Transacties per storting/opname</span>: <span class="v">${transactiesPerStortingOpname}</span></div>
       <div><span class="k">Rendement p.j.</span>: <span class="v">${fmtNumKomma(s.annualReturnPct, 6)}%</span></div>
       <div><span class="k">Onderliggende kosten p.j.</span>: <span class="v">${fmtNumKomma(s.underlyingAnnualPct, 6)}%</span></div>
+      <div><span class="k">Onderliggende kosten basis</span>: <span class="v">${s.underlyingCostBasis === "begin" ? "beginsaldo" : s.underlyingCostBasis === "avg" ? "gemiddeld" : s.underlyingCostBasis === "end" ? "eindsaldo" : s.underlyingCostBasis || "—"}</span></div>
       <div><span class="k">Onderliggende inlegkosten (%) (alleen broker)</span>: <span class="v">${fmtNumKomma(s.underlyingDepositPercentage ?? 0, 6)}%</span></div>
       <div><span class="k">Onderliggende opnamekosten (%) (alleen broker)</span>: <span class="v">${fmtNumKomma(s.underlyingWithdrawalPercentage ?? 0, 6)}%</span></div>
       <hr class="hr" />
@@ -582,13 +583,15 @@
     requestAnimationFrame(update);
   }
 
-  const TABLE_COLS = [
+  const TABLE_COLS_BASE = [
     { key: "maand", label: "Maand", kind: "text", hideSaldoNa: false },
     { key: "saldoVorigeMaand", label: "Saldo vorige maand", kind: "money", hideSaldoNa: false },
     { key: "initInleg", label: "Init. inleg (Δ)", kind: "money", hideSaldoNa: false },
     { key: "saldoNaS0", label: "Saldo na init. inleg", kind: "money", hideSaldoNa: true },
     { key: "storting", label: "Storting (Δ)", kind: "money", hideSaldoNa: false },
     { key: "saldoNaS1", label: "Saldo na storting", kind: "money", hideSaldoNa: true },
+    { key: "txStortingBedragEarly", label: "Tx kosten storting vroeg (Δ)", kind: "money", hideSaldoNa: false },
+    { key: "saldoNaTxStorting", label: "Saldo na tx storting vroeg", kind: "money", hideSaldoNa: true },
     { key: "belastingTOB", label: "Belasting TOB (Δ)", kind: "money", hideSaldoNa: false },
     { key: "saldoNaTOB", label: "Saldo na Belasting TOB", kind: "money", hideSaldoNa: true },
     { key: "rendement", label: "Rendement (Δ)", kind: "money", hideSaldoNa: false },
@@ -597,7 +600,7 @@
     { key: "saldoNaS3", label: "Saldo na onderliggende kosten", kind: "money", hideSaldoNa: true },
     { key: "kostenBedrag", label: "Aanbieder kosten (Δ)", kind: "money", hideSaldoNa: false },
     { key: "saldoNaS4", label: "Saldo na aanbieder kosten", kind: "money", hideSaldoNa: true },
-    { key: "txStortingBedrag", label: "Tx kosten storting (Δ)", kind: "money", hideSaldoNa: false },
+    { key: "txStortingBedragLate", label: "Tx kosten storting (Δ)", kind: "money", hideSaldoNa: false },
     { key: "saldoNaS5", label: "Saldo na tx storting", kind: "money", hideSaldoNa: true },
     { key: "txOpnameBedrag", label: "Tx kosten opname (Δ)", kind: "money", hideSaldoNa: false },
     { key: "saldoNaS6", label: "Saldo na tx opname", kind: "money", hideSaldoNa: true },
@@ -609,7 +612,7 @@
 
   function renderTable(res) {
     const hideSaldoNa = hideSaldoNaKolommen && hideSaldoNaKolommen.checked;
-    const cols = hideSaldoNa ? TABLE_COLS.filter((c) => !c.hideSaldoNa) : TABLE_COLS;
+    const cols = hideSaldoNa ? TABLE_COLS_BASE.filter((c) => !c.hideSaldoNa) : TABLE_COLS_BASE;
 
     headEl.innerHTML = "";
     bodyEl.innerHTML = "";
@@ -637,16 +640,17 @@
     const totals = res.totals;
     const last = res.rows[res.rows.length - 1];
     const trF = document.createElement("tr");
-    trF.appendChild(textCell("Totaal"));
     for (const c of cols) {
-      if (c.key === "maand" || c.key === "saldoVorigeMaand") trF.appendChild(textCell(""));
-      else if (c.key === "saldoNaS0" || c.key === "saldoNaS1" || c.key === "saldoNaS2" || c.key === "saldoNaS3" || c.key === "saldoNaS4" || c.key === "saldoNaS5" || c.key === "saldoNaS6") trF.appendChild(textCell(""));
+      if (c.key === "maand") trF.appendChild(textCell("Totaal"));
+      else if (c.key === "saldoVorigeMaand") trF.appendChild(textCell(""));
+      else if (c.key === "saldoNaS0" || c.key === "saldoNaS1" || c.key === "saldoNaS2" || c.key === "saldoNaS3" || c.key === "saldoNaS4" || c.key === "saldoNaS5" || c.key === "saldoNaS6" || c.key === "saldoNaTOB" || c.key === "saldoNaTxStorting" || c.key === "saldoNaTOBOpname") trF.appendChild(textCell(""));
       else if (c.key === "initInleg") trF.appendChild(moneyCell(totals.initInleg));
       else if (c.key === "storting") trF.appendChild(moneyCell(totals.storting));
       else if (c.key === "rendement") trF.appendChild(moneyCell(totals.rendement));
       else if (c.key === "onderliggendeKosten") trF.appendChild(moneyCell(totals.onderliggendeKosten));
       else if (c.key === "kostenBedrag") trF.appendChild(moneyCell(totals.kosten));
-      else if (c.key === "txStortingBedrag") trF.appendChild(moneyCell(totals.txStorting));
+      else if (c.key === "txStortingBedragEarly") trF.appendChild(moneyCell(totals.txStortingEarly));
+      else if (c.key === "txStortingBedragLate") trF.appendChild(moneyCell(totals.txStortingLate));
       else if (c.key === "txOpnameBedrag") trF.appendChild(moneyCell(totals.txOpname));
       else if (c.key === "belastingTOB" || c.key === "belastingTOBOpname") trF.appendChild(moneyCell(totals.taxTOB));
       else if (c.key === "opnameDelta") trF.appendChild(moneyCell(last?.opnameDelta || 0));

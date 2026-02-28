@@ -5,6 +5,7 @@
    * - fees.components: array van fee-componenten (fixed, percentOfBase, etc.)
    * - percentOfBase.ratePct: altijd op jaarbasis (%)
    * - percentOfBase.frequency: wanneer in rekening gebracht. "monthly" = 1/12 per maand, "quarterly" = 1/4 in maanden 3,6,9,12
+   * - percentOfBase.is_compounded: true = samengestelde rente, false/niet gezet = lineaire benadering (jaarbedrag/12 of /4)
    * - percentOfBase.minimumAnnual: optioneel minimum jaarbedrag voor dit component
    * - percentOfBase.minimumMonthly: optioneel minimum per maand voor dit component
    * - dividend: 'accumulating' | 'distributing' | null
@@ -12,6 +13,7 @@
    * - underlyingDepositPercentage: percentage inlegkosten op storting (en initInleg in maand 1), standaard 0
    * - underlyingWithdrawalPercentage: percentage opnamekosten op opname, standaard 0
    * - tax_BE_roerende_voorheffing_percentage: optioneel percentage (number) of null
+   * - transactions.deposit.bill_begin_month: true = tx kosten storting vóór TOB in rekening. false/niet gezet = tx later (na aanbiederkosten).
    * - Keep it declarative so providers are easy to add.
    */
   const PROVIDERS = [
@@ -45,7 +47,7 @@
       overrides: {
         underlyingAnnualPct: 0.2084,
       },
-      underlyingCostBasis: "begin", // begin | avg | end
+      underlyingCostBasis: "avg", // begin | avg | end
       fixedMonthlySkipMonths: 3, // Eerste 3 maanden geen fixed kosten
       fees: {
         components: [
@@ -87,7 +89,7 @@
       tax_BE_TOB_deposit: true,
       tax_BE_TOB_withdrawal: true,
       overrides: { underlyingAnnualPct: 0.17 },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           {
@@ -141,7 +143,7 @@
       tax_BE_TOB_deposit: true,
       tax_BE_TOB_withdrawal: true,
       overrides: { underlyingAnnualPct: 0.20 },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           {
@@ -229,13 +231,14 @@
       },
       // Aanbiederkosten op basis van saldo (S4, annual percentage):
       // 0,31% tot saldo 1.000.000, vanaf 1.000.000: 0,16%.
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           {
             kind: "percentOfBase",
             basis: "avg",
             frequency: "monthly",
+            is_compounded: false,
             tiers: {
               inclusiveUpper: false,
               apply: "highest",
@@ -252,6 +255,7 @@
       transactions: {
         deposit: {
           kind: "tieredTransaction",
+          bill_begin_month: true,
           // 0,25% per transactie zolang saldo < 500.000; daarboven geen tx-kosten.
           balanceThresholdForFees: 500000,
           percentRatePct: 0.25,
@@ -290,7 +294,7 @@
       service_recurring_investing: true,
       service_fractional_investing: true,
       overrides: { underlyingAnnualPct: 0.21 },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           {
@@ -341,7 +345,7 @@
       overrides: {
         underlyingAnnualPct: 0.4,
       },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           {
@@ -386,7 +390,7 @@
       service_recurring_investing: false,
       service_fractional_investing: false,
       overrides: {},
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           {
@@ -433,7 +437,7 @@
       tax_BE_TOB_deposit: true,
       tax_BE_TOB_withdrawal: true,
       overrides: {},
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: { components: [] },
       transactions: {
         deposit: { kind: "fixedPerTransaction", amount: 1.0 },
@@ -469,7 +473,7 @@
       service_recurring_investing: false,
       service_fractional_investing: false,
       overrides: {},
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: { components: [] },
       transactions: {
         deposit: {
@@ -515,7 +519,7 @@
       service_recurring_investing: false,
       service_fractional_investing: false,
       overrides: {},
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           {
@@ -560,7 +564,7 @@
       service_recurring_investing: true,
       service_fractional_investing: true,
       overrides: {},
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: { components: [] },
       transactions: {
         deposit: {
@@ -604,7 +608,7 @@
       service_recurring_investing: true,
       service_fractional_investing: true,
       overrides: {},
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: { components: [] },
       transactions: {
         deposit: { kind: "fixedPerTransaction", amount: 1 },
@@ -640,7 +644,7 @@
       service_recurring_investing: true,
       service_fractional_investing: true,
       overrides: {},
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: { components: [] },
       transactions: {
         deposit: {
@@ -684,7 +688,7 @@
       service_recurring_investing: true,
       service_fractional_investing: true,
       overrides: {},
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: { components: [] },
       transactions: { deposit: null, withdraw: null },
     },
@@ -717,7 +721,7 @@
       service_recurring_investing: true,
       service_fractional_investing: true,
       overrides: {},
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: { components: [] },
       transactions: { deposit: null, withdraw: null },
     },
@@ -750,7 +754,7 @@
       service_recurring_investing: true,
       service_fractional_investing: true,
       overrides: {},
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: { components: [] },
       transactions: {
         deposit: {
@@ -794,7 +798,7 @@
       service_recurring_investing: true,
       service_fractional_investing: true,
       overrides: {},
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: { components: [] },
       transactions: {
         deposit: {
@@ -836,7 +840,7 @@
       service_recurring_investing: true,
       service_fractional_investing: true,
       overrides: {},
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: { components: [{ kind: "fixed", amount: 9.99 }] },
       transactions: {
         deposit: {
@@ -879,7 +883,7 @@
       service_recurring_investing: true,
       service_fractional_investing: true,
       overrides: {},
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           {
@@ -938,7 +942,7 @@
       service_recurring_investing: true,
       service_fractional_investing: true,
       overrides: { underlyingAnnualPct: 0.21 },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: { components: [{ kind: "fixed", amount: 2 }] },
       transactions: {
         deposit: null,
@@ -986,7 +990,7 @@
       tax_BE_TOB_deposit: true,
       tax_BE_TOB_withdrawal: true,
       overrides: {},
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: { components: [] },
       transactions: {
         deposit: { kind: "rebelTieredFixed" },
@@ -1022,7 +1026,7 @@
       service_recurring_investing: true,
       service_fractional_investing: false,
       overrides: { underlyingAnnualPct: 2.17 },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: { components: [] },
       transactions: {
         deposit: {
@@ -1070,7 +1074,7 @@
       tax_BE_TOB_deposit: false, // Geen TOB bij instap
       tax_BE_TOB_withdrawal: true,
       overrides: { underlyingAnnualPct: 2.06 },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: { components: [] },
       transactions: {
         deposit: { kind: "tieredTransaction", percentRatePct: 2.5 },
@@ -1106,7 +1110,7 @@
       tax_BE_TOB_deposit: true,
       tax_BE_TOB_withdrawal: true,
       overrides: {},
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: { components: [] },
       transactions: {
         deposit: { kind: "boleroEtfPlaylist" },
@@ -1152,7 +1156,7 @@
       tax_BE_TOB_deposit: false,
       tax_BE_TOB_withdrawal: true,
       overrides: { underlyingAnnualPct: 2.1 },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: { components: [] },
       transactions: {
         deposit: null,
@@ -1192,7 +1196,7 @@
       tax_BE_TOB_deposit: true,
       tax_BE_TOB_withdrawal: true,
       overrides: { underlyingAnnualPct: 1.9 },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: { components: [] },
       transactions: {
         deposit: { kind: "tieredTransaction", percentRatePct: 3 },
@@ -1231,7 +1235,7 @@
       overrides: {
         underlyingAnnualPct: 0.294,
       },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           { kind: "fixed", amount: 0 },
@@ -1275,7 +1279,7 @@
       overrides: {
         underlyingAnnualPct: 0.294,
       },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           { kind: "fixed", amount: 2.99 },
@@ -1331,7 +1335,7 @@
       overrides: {
         underlyingAnnualPct: 0.294,
       },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           { kind: "fixed", amount: 7.99 },
@@ -1381,7 +1385,7 @@
       overrides: {
         underlyingAnnualPct: 0.22,
       },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           { kind: "percentOfBase", ratePct: 0.5, frequency: "monthly", basis: "avg" },
@@ -1417,7 +1421,7 @@
       overrides: {
         underlyingAnnualPct: 0.21,
       },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           { kind: "fixed", amount: 3.99 },
@@ -1454,7 +1458,7 @@
       overrides: {
         underlyingAnnualPct: 0.21,
       },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           { kind: "fixed", amount: 3.99 },
@@ -1491,7 +1495,7 @@
       overrides: {
         underlyingAnnualPct: 0.13,
       },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           {
@@ -1540,7 +1544,7 @@
       overrides: {
         underlyingAnnualPct: 0.2,
       },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           { kind: "fixed", amount: 1.59 },
@@ -1577,7 +1581,7 @@
       overrides: {
         underlyingAnnualPct: 0.17,
       },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           {
@@ -1618,7 +1622,7 @@
       overrides: {
         underlyingAnnualPct: 0.18,
       },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           {
@@ -1667,7 +1671,7 @@
       tax_BE_TOB_deposit: true,
       tax_BE_TOB_withdrawal: true,
       overrides: { underlyingAnnualPct: 2.2 },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: { components: [] },
       transactions: {
         deposit: { kind: "tieredTransaction", percentRatePct: 2.5 },
@@ -1703,7 +1707,7 @@
       tax_BE_TOB_deposit: true,
       tax_BE_TOB_withdrawal: true,
       overrides: {},
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           {
@@ -1743,7 +1747,7 @@
       overrides: {
         underlyingAnnualPct: 0.7,
       },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           {
@@ -1784,7 +1788,7 @@
       overrides: {
         underlyingAnnualPct: 1.12,
       },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           {
@@ -1825,7 +1829,7 @@
       overrides: {
         underlyingAnnualPct: 0.1,
       },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       minimumQuarterlyFee: 5, // 0,5% per kwartaal, min. €5 per kwartaal
       fees: {
         components: [
@@ -1867,7 +1871,7 @@
       overrides: {
         underlyingAnnualPct: 0.15,
       },
-      underlyingCostBasis: "begin",
+      underlyingCostBasis: "avg",
       fees: {
         components: [
           {

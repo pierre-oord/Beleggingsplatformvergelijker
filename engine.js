@@ -10,10 +10,6 @@
     return Math.pow(1 + a, 1 / 12) - 1;
   }
 
-  function toMonthlyRateFromAnnualPctSimple(annualPct) {
-    const a = clampNumber(annualPct, 0) / 100;
-    return a / 12;
-  }
 
   function toMonthlyUnderlyingCostRate(underlyingAnnualPct) {
     const a = clampNumber(underlyingAnnualPct, 0) / 100;
@@ -193,16 +189,27 @@
         const base = feeBasisValueMap[c.basis || "avg"] ?? 0;
         const frequency = c.frequency || "monthly"; // "monthly" = jaarbedrag/12 per maand, "quarterly" = jaarbedrag/4 in maanden 3,6,9,12
         const isQuarterEnd = monthNumber % 3 === 0;
+        const isCompounded = c.is_compounded === true;
 
-        const toMonthlyPortion = (annualAmount) => {
-          if (frequency === "quarterly") return isQuarterEnd ? annualAmount / 4 : 0;
-          return annualAmount / 12; // monthly: 1/12 van jaarbedrag per maand
+        const toMonthlyPortion = (annualAmountOrRate, baseForCompound) => {
+          const divisor = frequency === "quarterly" ? 4 : 12;
+          const periodFraction = frequency === "quarterly" ? 1 / 4 : 1 / 12;
+          if (frequency === "quarterly" && !isQuarterEnd) return 0;
+
+          if (isCompounded) {
+            if (baseForCompound != null && baseForCompound > 0) {
+              return baseForCompound * (Math.pow(1 + annualAmountOrRate / baseForCompound, periodFraction) - 1);
+            }
+            if (baseForCompound === 0) return 0;
+            return Math.pow(1 + annualAmountOrRate, periodFraction) - 1;
+          }
+          return annualAmountOrRate / divisor;
         };
 
         let fee;
         if (c.tiers && Array.isArray(c.tiers.tiers)) {
           const feeAnnual = tieredPercentFee(c.tiers, base);
-          fee = toMonthlyPortion(feeAnnual);
+          fee = toMonthlyPortion(feeAnnual, base);
           if (frequency === "quarterly" && isQuarterEnd && c.minimumQuarterly != null) {
             fee = Math.max(fee, Math.max(0, clampNumber(c.minimumQuarterly, 0)));
           }
@@ -336,6 +343,8 @@
       onderliggendeKosten: 0,
       kosten: 0,
       txStorting: 0,
+      txStortingEarly: 0,
+      txStortingLate: 0,
       txOpname: 0,
       taxTOB: 0, // som TOB over inleg + opname
       opnameNetto: 0,
@@ -356,6 +365,7 @@
     const minimumQuarterlyFee =
       provider.minimumQuarterlyFee != null ? Math.max(0, clampNumber(provider.minimumQuarterlyFee, 0)) : null;
     let yearFeeSum = 0;
+    const billBeginMonth = provider.transactions?.deposit?.bill_begin_month === true;
 
     for (let m = 1; m <= months; m++) {
       const isLast = m === months;
@@ -367,15 +377,21 @@
       const storting = Math.max(0, clampNumber(maandbedrag, 0));
       const saldoNaS1 = saldoNaS0 + storting;
 
-      // Belasting TOB over inleg (initiële inleg + storting)
+      // Tx kosten storting vroeg: vóór TOB, over bruto inleg (initInleg + storting)
+      const inlegBruto = initInleg + storting;
+      let txStortingBedragEarly = 0;
+      if (billBeginMonth && !ignoreAllCosts && provider.transactions?.deposit) {
+        txStortingBedragEarly = -transactionFeeTotal(provider.transactions.deposit, inlegBruto, n, saldoNaS1);
+      }
+      const saldoNaTxStorting = saldoNaS1 + txStortingBedragEarly;
+
+      // Belasting TOB over inleg (initiële inleg + storting), toegepast op saldo na tx
       let belastingTOB = 0;
-      let saldoNaTOB = saldoNaS1;
+      let saldoNaTOB = saldoNaTxStorting;
       const tobOnDeposit = provider.tax_BE_TOB_deposit === true;
       if (!ignoreAllCosts && hasTOB && tobOnDeposit) {
-        const inlegBruto = initInleg + storting;
         if (inlegBruto > 0 && tobRate > 0 && tobMax > 0) {
           if (providerType === "broker" && n > 1) {
-            // Verdeel inleg over n transacties en pas per transactie de TOB-formule toe
             const per = inlegBruto / n;
             const basePer = per / (1 + tobRate);
             const taxPerIdeal = basePer * tobRate;
@@ -388,18 +404,21 @@
             const capped = Math.min(taxIdeal, tobMax);
             belastingTOB = -capped;
           }
-          saldoNaTOB = saldoNaS1 + belastingTOB;
+          saldoNaTOB = saldoNaTxStorting + belastingTOB;
         }
       }
 
-      const rendement = saldoNaTOB * monthlyReturnRate;
-      const saldoNaS2 = saldoNaTOB + rendement;
+      let rendement;
+      let saldoNaS2;
+      rendement = saldoNaTOB * monthlyReturnRate;
+      saldoNaS2 = saldoNaTOB + rendement;
 
+      const saldoVoorKosten = saldoNaTOB;
       const onderliggendeKostenBase = (() => {
         const basis = provider.underlyingCostBasis || "begin";
-        if (basis === "begin") return saldoNaTOB;
-        if (basis === "end") return saldoNaTOB + rendement;
-        return saldoNaTOB + rendement / 2;
+        if (basis === "begin") return saldoVoorKosten;
+        if (basis === "end") return saldoVoorKosten + rendement;
+        return saldoVoorKosten + rendement / 2;
       })();
 
       const onderliggendeKostenBalance = ignoreUnderlying ? 0 : -Math.max(0, onderliggendeKostenBase) * underlyingMonthlyRate;
@@ -411,21 +430,19 @@
       const onderliggendeKosten = onderliggendeKostenBalance + onderliggendeInlegkosten;
       const saldoNaS3 = saldoNaS2 + onderliggendeKosten;
 
-      // Fee-basis moet TOB meenemen (S0+S1+TOB+...)
-      // avg = gemiddelde saldo in deze maand (saldo halverwege de maand, vóór aanbiederfee)
-      const avgDezeMaand = saldoNaTOB + rendement / 2 + onderliggendeKosten / 2;
+      // Fee-basis moet TOB (en bij billBeginMonth ook tx) meenemen
+      const avgDezeMaand = saldoVoorKosten + rendement / 2 + onderliggendeKosten / 2;
       const feeBasisMap = {
-        begin: saldoNaTOB,
+        begin: saldoVoorKosten,
         avg: avgDezeMaand,
-        end: saldoNaTOB + rendement + onderliggendeKosten,
+        end: saldoVoorKosten + rendement + onderliggendeKosten,
       };
-      // Bij quarterly billing: basis "avg" = (startsaldo kwartaal + eindsaldo kwartaal) / 2
       const hasQuarterlyFees =
         Array.isArray(provider.fees?.components) &&
         provider.fees.components.some((c) => c?.frequency === "quarterly");
       if (hasQuarterlyFees && m % 3 === 0 && m >= 3 && rows.length >= 2) {
         const startKwartaal = rows[m - 3].saldoNaTOB;
-        const eindKwartaal = saldoNaTOB + rendement + onderliggendeKosten;
+        const eindKwartaal = saldoVoorKosten + rendement + onderliggendeKosten;
         feeBasisMap.avg = (startKwartaal + eindKwartaal) / 2;
       }
       const fixedMonthlySkipMonths = provider.fixedMonthlySkipMonths ?? null;
@@ -454,11 +471,11 @@
       }
       const saldoNaS4 = saldoNaS3 + kostenBedrag;
 
-      const txStortingBedrag =
-        ignoreAllCosts || !provider.transactions?.deposit
-          ? 0
-          : -transactionFeeTotal(provider.transactions.deposit, storting, n, saldoNaS4);
-      const saldoNaS5 = saldoNaS4 + txStortingBedrag;
+      let txStortingBedragLate = 0;
+      if (!billBeginMonth && !ignoreAllCosts && provider.transactions?.deposit) {
+        txStortingBedragLate = -transactionFeeTotal(provider.transactions.deposit, inlegBruto, n, saldoNaS4);
+      }
+      const saldoNaS5 = saldoNaS4 + txStortingBedragLate;
 
       const opnameBruto = isLast ? saldoNaS5 : 0;
       const txOpnameBedrag =
@@ -510,6 +527,8 @@
         saldoNaS0,
         storting,
         saldoNaS1,
+        txStortingBedragEarly,
+        saldoNaTxStorting,
         belastingTOB,
         saldoNaTOB,
         rendement,
@@ -518,7 +537,7 @@
         saldoNaS3,
         kostenBedrag,
         saldoNaS4,
-        txStortingBedrag,
+        txStortingBedragLate,
         saldoNaS5,
         txOpnameBedrag,
         saldoNaS6,
@@ -535,7 +554,9 @@
       totals.rendement += rendement;
       totals.onderliggendeKosten += onderliggendeKosten + onderliggendeOpnamekosten;
       totals.kosten += kostenBedrag;
-      totals.txStorting += txStortingBedrag;
+      totals.txStorting += txStortingBedragEarly + txStortingBedragLate;
+      totals.txStortingEarly += txStortingBedragEarly;
+      totals.txStortingLate += txStortingBedragLate;
       totals.txOpname += txOpnameBedrag;
       totals.taxTOB += belastingTOB + belastingTOBOpname;
       totals.opnameNetto += opnameNetto;
@@ -597,6 +618,8 @@
       nTransactions: n,
       annualReturnPct: effAnnualReturnPct,
       underlyingAnnualPct: effUnderlyingAnnualPct,
+      underlyingCostBasis: provider.underlyingCostBasis || "begin",
+      bill_begin_month: billBeginMonth,
       underlyingDepositPercentage: effUnderlyingDepositPct,
       underlyingWithdrawalPercentage: effUnderlyingWithdrawalPct,
       totalInleg,

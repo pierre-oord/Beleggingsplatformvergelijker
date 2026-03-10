@@ -1236,7 +1236,7 @@
       },
       transactions: {
         deposit: null,
-        withdraw: { kind: "fixedPerTransaction", amount: 0.99 * 5 }, /* 5 transacties bij opname */
+        withdraw: { kind: "fixedPerTransaction", amount: 0.99},
       },
     },
     {
@@ -1291,7 +1291,7 @@
       },
       transactions: {
         deposit: null,
-        withdraw: { kind: "fixedPerTransaction", amount: 0.99 * 5 }, /* 5 transacties bij opname */
+        withdraw: { kind: "fixedPerTransaction", amount: 0.99},
       },
     },
     {
@@ -1346,7 +1346,7 @@
       },
       transactions: {
         deposit: null,
-        withdraw: { kind: "fixedPerTransaction", amount: 0.99 * 5 }, /* 5 transacties bij opname */
+        withdraw: { kind: "fixedPerTransaction", amount: 0.99},
       },
     },
     {

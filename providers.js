@@ -35,7 +35,7 @@
       strategy: "passive",
       underlyingDepositPercentage: 0,
       underlyingWithdrawalPercentage: 0,
-      tax_BE_TOB_service: 'n.v.t.', // Je koopt bij UpToMore niet direct ETF's op je eigen naam.
+      tax_BE_TOB_service: "n.v.t.", // Je koopt bij UpToMore niet direct ETF's op je eigen naam.
       tax_BE_roerende_voorheffing_service: "n.v.t.", // UpToMore keert geen dividenden uit.
       tax_BE_roerende_voorheffing_percentage: null,
       tax_BE_effectentaks_service: "",
@@ -69,7 +69,7 @@
       countries: ["BE"],
       lastUpdated: "17-02-2026",
       minimumInleg: 5000,
-      duurzaamheid: 'Grijs',
+      duurzaamheid: "Grijs",
       aandelenpercentage: 100,
       fbi: false,
       risk_indicator: null,
@@ -123,7 +123,7 @@
       countries: ["BE"],
       lastUpdated: "17-02-2026",
       minimumInleg: 5000,
-      duurzaamheid: 'Lichtgroen',
+      duurzaamheid: "Lichtgroen",
       aandelenpercentage: 100,
       fbi: false,
       risk_indicator: null,
@@ -178,7 +178,7 @@
       lastUpdated: "17-02-2026",
       // Extra eigenschappen (informational only; no calculations depend on deze velden)
       minimumInleg: null, // Die is 10.000 maar je mag er naartoe sparen...
-      duurzaamheid: "Lichtgroen", 
+      duurzaamheid: "Lichtgroen",
       aandelenpercentage: 100,
       fbi: true,
       risk_indicator: null,
@@ -222,7 +222,6 @@
         // Stel dat je een fonds hebt met heel bedrijven die vooral dividend betalen. Logischerwijs is er dan ook meer
         // dividendlekkage voordeel. Hetzelfde geld voor fondsen die relatief veel belasting betalen door welke oorzaak dan ook.
         // Al met al: ik kom uit op een potentiële 0,13% voordeel, mits alle bovenstaande aannames juist zijn.
-    
 
         underlyingAnnualPct: 0.11,
       },
@@ -281,7 +280,7 @@
       strategy: "passive",
       underlyingDepositPercentage: 0,
       underlyingWithdrawalPercentage: 0,
-      tax_BE_TOB_service: 'n.v.t.',
+      tax_BE_TOB_service: "n.v.t.",
       tax_BE_roerende_voorheffing_service: "n.v.t.", // Curvo heeft alleen accumulerende fondsen
       tax_BE_roerende_voorheffing_percentage: null,
       tax_BE_effectentaks_service: "",
@@ -322,7 +321,7 @@
       countries: ["NL", "BE"],
       lastUpdated: "19-02-2026",
       minimumInleg: 5000,
-      duurzaamheid: 'Lichtgroen',
+      duurzaamheid: "Lichtgroen",
       aandelenpercentage: 90,
       fbi: false,
       risk_indicator: null,
@@ -330,8 +329,8 @@
       strategy: null,
       underlyingDepositPercentage: 0,
       underlyingWithdrawalPercentage: 0,
-      tax_BE_TOB_service: 'n.v.t.',
-      tax_BE_roerende_voorheffing_service: 'Ja',
+      tax_BE_TOB_service: "n.v.t.",
+      tax_BE_roerende_voorheffing_service: "Ja",
       tax_BE_roerende_voorheffing_percentage: 30,
       tax_BE_effectentaks_service: "",
       tax_BE_reynderstaks_service: "", // alleen als er >10% in vast rentende obligaties wordt belegd in de ETFs
@@ -458,8 +457,8 @@
       strategy: null,
       underlyingDepositPercentage: 0,
       underlyingWithdrawalPercentage: 0,
-      tax_BE_TOB_service: 'Ja',
-      tax_BE_roerende_voorheffing_service: 'Nee',
+      tax_BE_TOB_service: "Ja",
+      tax_BE_roerende_voorheffing_service: "Nee",
       tax_BE_roerende_voorheffing_percentage: null,
       tax_BE_effectentaks_service: "",
       tax_BE_reynderstaks_service: "",
@@ -825,8 +824,8 @@
       strategy: null,
       underlyingDepositPercentage: 0,
       underlyingWithdrawalPercentage: 0,
-      tax_BE_TOB_service: "nee",
-      tax_BE_roerende_voorheffing_service: "nee",
+      tax_BE_TOB_service: "Nee",
+      tax_BE_roerende_voorheffing_service: "Nee",
       tax_BE_roerende_voorheffing_percentage: null,
       tax_BE_effectentaks_service: "",
       tax_BE_reynderstaks_service: "",
@@ -1115,7 +1114,6 @@
       },
     },
     {
-
       // Keytrade onderliggende fondsen Beleggingsplan Gedurfd:
       // 10%	LU2809794220	1,8	0,25	2,05
       // 20%	LU0203975437	1,46	0,48	1,94
@@ -1123,8 +1121,7 @@
       // 20%	LU0093502762	1,82	0,11	1,93
       // 10%	LU0386882277	2	0,09	2,09
       // 20%	LU0172125329	1,81	0,1	1,91
-			// 2,100
-
+      // 2,100
       id: "keytrade-bank-keyplan-gedurfd",
       name: "Keytrade Bank (Keyplan Beleggingsplan Gedurfd)",
       website: "https://www.keytradebank.be",
@@ -1133,7 +1130,7 @@
       countries: ["BE"],
       lastUpdated: "19-02-2026",
       minimumInleg: 25,
-      duurzaamheid: 'Grijs',
+      duurzaamheid: "Grijs",
       aandelenpercentage: null,
       fbi: false,
       risk_indicator: null,
@@ -1141,8 +1138,8 @@
       strategy: null,
       underlyingDepositPercentage: 0, // Onduidelijk, afgaande op letter na namen fondsen waar het heen gaat lijkt het beide) https://www.keytradebank.be/nl/investeren/keyplan/creeer-uw-beleggingsplan?initialAmount=0&recurringAmount=25&periodicity=2&selectedProfile=A
       underlyingWithdrawalPercentage: 0,
-      tax_BE_TOB_service: 'Ja',
-      tax_BE_roerende_voorheffing_service: 'Ja',
+      tax_BE_TOB_service: "Ja",
+      tax_BE_roerende_voorheffing_service: "Ja",
       tax_BE_roerende_voorheffing_percentage: null,
       tax_BE_effectentaks_service: "",
       tax_BE_reynderstaks_service: "",
@@ -1161,7 +1158,6 @@
       },
     },
     {
-
       // Met Flexinvest kun je automatisch hun fondsen kopen, dat kan niet met ETF's
       id: "kbc-beleggingsplan-equity-fund-world",
       name: "KBC (Beleggingsplan - Equity Fund World)",
@@ -1201,13 +1197,14 @@
       },
     },
     {
+      // https://bux.com/nl/tarieven/
       id: "bux-basic",
       name: "Bux Basic (Duurzaamheid)",
       website: "https://www.getbux.com",
-      type: "fondsaanbieder",
+      type: "broker",
       is_bank: false,
       countries: ["NL", "BE", "DE", "FR", "IT", "ES", "AT", "IE"],
-      lastUpdated: null,
+      lastUpdated: "10-03-2026",
       minimumInleg: null,
       duurzaamheid: "Lichtgroen",
       aandelenpercentage: 100,
@@ -1229,9 +1226,7 @@
       tax_BE_TOB_max: 1300, // maximaal 1.300 EUR per maand (cap)
       tax_BE_TOB_deposit: true,
       tax_BE_TOB_withdrawal: true,
-      overrides: {
-        underlyingAnnualPct: 0.294,
-      },
+      overrides: {},
       underlyingCostBasis: "avg",
       fees: {
         components: [
@@ -1245,13 +1240,14 @@
       },
     },
     {
+      // https://bux.com/nl/tarieven/
       id: "bux-plus",
       name: "Bux Plus (Duurzaamheid)",
       website: "https://www.bux.com",
-      type: "fondsaanbieder",
+      type: "broker",
       is_bank: false,
       countries: ["NL", "BE", "DE", "FR", "IT", "ES", "AT", "IE"],
-      lastUpdated: null,
+      lastUpdated: "10-03-2026",
       minimumInleg: null,
       duurzaamheid: "Lichtgroen",
       aandelenpercentage: 100,
@@ -1273,9 +1269,7 @@
       tax_BE_TOB_max: 1300, // maximaal 1.300 EUR per maand (cap)
       tax_BE_TOB_deposit: true,
       tax_BE_TOB_withdrawal: true,
-      overrides: {
-        underlyingAnnualPct: 0.294,
-      },
+      overrides: {},
       underlyingCostBasis: "avg",
       fees: {
         components: [
@@ -1301,13 +1295,14 @@
       },
     },
     {
+      // https://bux.com/nl/tarieven/
       id: "bux-prime",
       name: "Bux Prime (Duurzaamheid)",
       website: "https://www.bux.com",
-      type: "fondsaanbieder",
+      type: "broker",
       is_bank: false,
       countries: ["NL", "BE", "DE", "FR", "IT", "ES", "AT", "IE"],
-      lastUpdated: null,
+      lastUpdated: "10-03-2026",
       minimumInleg: null,
       duurzaamheid: "Lichtgroen",
       aandelenpercentage: 100,
@@ -1329,9 +1324,7 @@
       tax_BE_TOB_max: 1300, // maximaal 1.300 EUR per maand (cap)
       tax_BE_TOB_deposit: true,
       tax_BE_TOB_withdrawal: true,
-      overrides: {
-        underlyingAnnualPct: 0.294,
-      },
+      overrides: {},
       underlyingCostBasis: "avg",
       fees: {
         components: [
@@ -1357,14 +1350,17 @@
       },
     },
     {
+      // https://direct.vaneck.com/kosten
+      // https://direct.vaneck.com/help/verschil-vaneck-vaneckdirect --> €100 minimale inleg
+      // Ze vragen ook een symblogische €1 als je geld opneemt vóór je doel bereikt. Die is niet meegenomen.
       id: "vaneck-direct-zeer-offensief",
       name: "VanEck Direct (Zeer offensief)",
       website: "https://www.vaneck.com",
       type: "fondsaanbieder",
       is_bank: false,
       countries: ["NL"],
-      lastUpdated: null,
-      minimumInleg: null,
+      lastUpdated: "10-03-2026",
+      minimumInleg: 100,
       // 95% SFDR Artikel 8, 5% Artikel 6
       duurzaamheid: "Grijs",
       aandelenpercentage: 90,
@@ -1394,14 +1390,15 @@
       },
     },
     {
+      // https://www.semmiewealth.nl/kosten/
+      // De fondskosten vermelden ze niet langer, daarom vasthouden aan de eerder gemelde kosten.
       id: "semmiewealth-growth-solid-zeer-offensief",
       name: "SemmieWealth (Growth Solid Zeer offensief)",
-
       website: "https://www.semmiewealth.nl",
       type: "fondsaanbieder",
       is_bank: false,
       countries: ["NL"],
-      lastUpdated: null,
+      lastUpdated: "10-03-2026",
       minimumInleg: 1000,
       duurzaamheid: "Lichtgroen",
       aandelenpercentage: 100,
@@ -1432,6 +1429,8 @@
       },
     },
     {
+      // https://www.semmiewealth.nl/kosten/
+      // De fondskosten vermelden ze niet langer, daarom vasthouden aan de eerder gemelde kosten.
       id: "semmiewealth-premium-solid-zeer-offensief",
       name: "SemmieWealth (Premium Solid Zeer offensief)",
       website: "https://www.semmiewealth.nl",
@@ -1475,9 +1474,9 @@
       type: "fondsaanbieder",
       is_bank: false,
       countries: ["NL"],
-      lastUpdated: null,
+      lastUpdated: "10-03-2026",
       minimumInleg: 25,
-      duurzaamheid: 'Grijs',
+      duurzaamheid: "Grijs",
       aandelenpercentage: 100,
       fbi: false,
       risk_indicator: null,
@@ -1524,7 +1523,7 @@
       website: "https://peaks.nl",
       type: "fondsaanbieder",
       countries: ["NL", "DE"],
-      lastUpdated: null,
+      lastUpdated: "10-03-2026",
       minimumInleg: null,
       duurzaamheid: "Grijs", // 93% SFDR Article 8, 7% SFDR Article 6
       aandelenpercentage: 90,
@@ -1546,7 +1545,7 @@
       fees: {
         components: [
           { kind: "fixed", amount: 1.59 },
-          { kind: "percentOfBase", ratePct: 0.5, frequency: "monthly", basis: "avg" },
+          { kind: "percentOfBase", ratePct: (0.04 * 12), frequency: "monthly", basis: "avg" }, // Dit was 0,5% per jaar. Nu staat er 0,04% per maand, dat is 0,48% per jaar. Mogelijk ronden ze dit dus gunstig af
         ],
       },
       transactions: {
@@ -1555,13 +1554,50 @@
       },
     },
     {
+      id: "peaks-avontuurlijk-maandelijks",
+      name: "Peaks (Avontuurlijk, maandelijks)",
+      website: "https://peaks.nl",
+      type: "fondsaanbieder",
+      countries: ["NL", "DE"],
+      lastUpdated: "10-03-2026",
+      minimumInleg: null,
+      duurzaamheid: "Grijs", // 93% SFDR Article 8, 7% SFDR Article 6
+      aandelenpercentage: 90,
+      fbi: false,
+      risk_indicator: null,
+      dividend: "accumulating",
+      strategy: "passive",
+      underlyingDepositPercentage: 0, // de 90% aandelen ETF's volgen een index, obligaties = ?
+      underlyingWithdrawalPercentage: 0,
+      tax_BE_roerende_voorheffing_percentage: null,
+      tax_BE_TOB_deposit: false,
+      tax_BE_TOB_withdrawal: false,
+      service_recurring_investing: true,
+      service_fractional_investing: true,
+      overrides: {
+        underlyingAnnualPct: 0.2,
+      },
+      underlyingCostBasis: "avg",
+      fees: {
+        components: [
+          { kind: "fixed", amount: 1.99 },
+          { kind: "percentOfBase", ratePct: (0.04 * 12), frequency: "monthly", basis: "avg" }, // Dit was 0,5% per jaar. Nu staat er 0,04% per maand, dat is 0,48% per jaar. Mogelijk ronden ze dit dus gunstig af
+        ],
+      },
+      transactions: {
+        deposit: null,
+        withdraw: null,
+      },
+    },
+    {
+      // https://new.brandnewday.nl/beleggingsrekening/kosten-beleggingsrekening/
       id: "brand-new-day-modelportefeuille-zeer-offensief",
       name: "Brand New Day (Modelportefeuille Zeer offensief)",
       website: "https://www.brandnewday.nl",
       type: "fondsaanbieder",
       is_bank: false,
       countries: ["NL"],
-      lastUpdated: null,
+      lastUpdated: "10-03-2026",
       minimumInleg: null,
       duurzaamheid: "Lichtgroen",
       aandelenpercentage: 100,
@@ -1596,15 +1632,16 @@
       },
     },
     {
+      // https://www.knab.nl/particulier/beleggen/beheerd-beleggen/kosten
       id: "knab-beheerd-zeer-offensief",
       name: "Knab (Beheerd Beleggen Zeer Offensief)",
       website: "https://www.knab.nl",
       type: "fondsaanbieder",
       is_bank: true,
       countries: ["NL"],
-      lastUpdated: "18-02-2026",
+      lastUpdated: "10-03-2026",
       minimumInleg: null,
-      duurzaamheid: 'Lichtgroen',
+      duurzaamheid: "Lichtgroen",
       aandelenpercentage: 100,
       fbi: false,
       risk_indicator: null,
@@ -1729,12 +1766,12 @@
       type: "fondsaanbieder",
       is_bank: true,
       countries: ["NL"],
-      lastUpdated: "18-02-2026",
-      minimumInleg: null,
-      duurzaamheid: 'Lichtgroen',
+      lastUpdated: "10-03-2026",
+      minimumInleg: 10,
+      duurzaamheid: "Lichtgroen",
       aandelenpercentage: 90,
       fbi: false,
-      risk_indicator: null,
+      risk_indicator: 3,
       dividend: "accumulating",
       strategy: "active", // ze passen weging ETF's naar eigen inzicht aan.
       tax_BE_roerende_voorheffing_percentage: null,
@@ -1743,14 +1780,14 @@
       service_recurring_investing: true,
       service_fractional_investing: true,
       overrides: {
-        underlyingAnnualPct: 0.7,
+        underlyingAnnualPct: 0.7, // 0,66% beheerskosten + 0,04% transactiekosten
       },
       underlyingCostBasis: "avg",
       fees: {
         components: [
           {
             kind: "percentOfBase",
-            ratePct: 0.4,
+            ratePct: 0.4, // servicekosten
             frequency: "quarterly",
             basis: "avg",
           },
@@ -1768,9 +1805,9 @@
       type: "fondsaanbieder",
       is_bank: true,
       countries: ["NL"],
-      lastUpdated: "18-02-2026",
-      minimumInleg: null,
-      duurzaamheid: 'Lichtgroen',
+      lastUpdated: "10-03-2026",
+      minimumInleg: 20,
+      duurzaamheid: "Lichtgroen",
       aandelenpercentage: 90,
       fbi: false,
       risk_indicator: null,
@@ -1784,7 +1821,7 @@
       service_recurring_investing: true,
       service_fractional_investing: true,
       overrides: {
-        underlyingAnnualPct: 1.12,
+        underlyingAnnualPct: 1.12, // ABN AMRO Profielfondsen lopende kosten en transactiekosten per 1-4-2025: 0,84% + 0,28%
       },
       underlyingCostBasis: "avg",
       fees: {
@@ -1809,9 +1846,9 @@
       type: "fondsaanbieder",
       is_bank: true,
       countries: ["NL"],
-      lastUpdated: null,
-      minimumInleg: null,
-      duurzaamheid: 'Lichtgroen',
+      lastUpdated: "10-03-2026",
+      minimumInleg: 10,
+      duurzaamheid: "Lichtgroen",
       aandelenpercentage: 100, //  Je kunt zelf je verdeling kiezen van 0 tot 100%
       fbi: true,
       risk_indicator: null,
@@ -1825,7 +1862,7 @@
       service_recurring_investing: true,
       service_fractional_investing: true,
       overrides: {
-        underlyingAnnualPct: 0.1,
+        underlyingAnnualPct: 0.1, /* 0,1% bij aandelenfonds, 0,15% bij obligatiefonds */
       },
       underlyingCostBasis: "avg",
       minimumQuarterlyFee: 5, // 0,5% per kwartaal, min. €5 per kwartaal
@@ -1833,7 +1870,7 @@
         components: [
           {
             kind: "percentOfBase",
-            ratePct: 0.5,
+            ratePct: 0.5, /* Dus 0,125% per kwartaal */
             frequency: "quarterly",
             basis: "avg",
           },
@@ -1851,9 +1888,9 @@
       type: "fondsaanbieder",
       is_bank: true,
       countries: ["NL"],
-      lastUpdated: "18-02-2026",
+      lastUpdated: "10-03-2026",
       minimumInleg: null,
-      duurzaamheid: 'Lichtgroen',
+      duurzaamheid: "Lichtgroen",
       aandelenpercentage: 90,
       fbi: true,
       risk_indicator: null,
@@ -1867,7 +1904,7 @@
       service_recurring_investing: true,
       service_fractional_investing: true,
       overrides: {
-        underlyingAnnualPct: 0.15,
+        underlyingAnnualPct: 0.15, /* van Rabobank helpdesk chat ontvangen, screenshot opgeslagen */
       },
       underlyingCostBasis: "avg",
       fees: {

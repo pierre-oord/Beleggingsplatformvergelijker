@@ -1394,8 +1394,9 @@
       },
     },
     {
-      id: "semmiewealth-premium-solid-zeer-offensief",
-      name: "SemmieWealth (Premium Solid Zeer offensief)",
+      id: "semmiewealth-growth-solid-zeer-offensief",
+      name: "SemmieWealth (Growth Solid Zeer offensief)",
+
       website: "https://www.semmiewealth.nl",
       type: "fondsaanbieder",
       is_bank: false,
@@ -1431,8 +1432,8 @@
       },
     },
     {
-      id: "semmiewealth-growth-solid-zeer-offensief",
-      name: "SemmieWealth (Growth Solid Zeer offensief)",
+      id: "semmiewealth-premium-solid-zeer-offensief",
+      name: "SemmieWealth (Premium Solid Zeer offensief)",
       website: "https://www.semmiewealth.nl",
       type: "fondsaanbieder",
       is_bank: false,

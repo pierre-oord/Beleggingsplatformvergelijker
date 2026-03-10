@@ -1199,7 +1199,7 @@
     {
       // https://bux.com/nl/tarieven/
       id: "bux-basic",
-      name: "Bux Basic (Duurzaamheid)",
+      name: "Bux Basic",
       website: "https://www.getbux.com",
       type: "broker",
       is_bank: false,
@@ -1242,7 +1242,7 @@
     {
       // https://bux.com/nl/tarieven/
       id: "bux-plus",
-      name: "Bux Plus (Duurzaamheid)",
+      name: "Bux Plus",
       website: "https://www.bux.com",
       type: "broker",
       is_bank: false,
@@ -1297,7 +1297,7 @@
     {
       // https://bux.com/nl/tarieven/
       id: "bux-prime",
-      name: "Bux Prime (Duurzaamheid)",
+      name: "Bux Prime",
       website: "https://www.bux.com",
       type: "broker",
       is_bank: false,

@@ -45,7 +45,7 @@
       service_recurring_investing: true,
       service_fractional_investing: true,
       overrides: {
-        underlyingAnnualPct: 0.2084,
+        underlyingAnnualPct: 0.2064,
       },
       underlyingCostBasis: "avg", // begin | avg | end
       fixedMonthlySkipMonths: 3, // Eerste 3 maanden geen fixed kosten
@@ -192,17 +192,14 @@
       service_recurring_investing: true,
       service_fractional_investing: true,
       overrides: {
+        // 10-03-2026:
         // Aaandelen wereldwijd A hebben deze fondsen (ontvangen per email van Meesman)
         // IE00BF2PF682 0,07% lopende + 0,01% Transactiekosten (82,6% van fonds 2025 jaarrekening)
         // NL0013089147 0,18% lopende + 0,07% Transactiekosten (8,2% van fonds 2025 jaarrekening)
         // NL0013552094 0,23% Lopende + 0,05% Transactiekosten (9,2 van fonds 2025 jaarrekening)
         // Dit geeft een gemiddelde van 0,11% onderliggende kosten, terwijl Meesman 0,09 noemt. 
-        // Het lijkt erop dat de transactiekosten zijn vergeten. Mogelijk brengt Meesman 0,02% kosten teveel in rekening,
-        // want het 'gat' dichten ze, totdat ze uitkomen op 0,40%, aldus hun documentatie.
-        // Na contact met Meesman (maanden geleden) is bevestigd dat er fouten staan in het KID, maar na herhaaldelijk herinneren is
-        // het niet bijgewerkt. Daarom ga ik er vanuit dat de 0,02% kosten nog steeds missen.
-
-
+        // In het KID van 31-12-2026 (PDF datum 06-02-2026, 09:45:48) wordt 0,40% beheerkosten en 0,02% transactiekosten vermeld.
+        //
         // Dividendlekkagevoordeel
         // Diverse aanbieders roepen grote getallen, maar onderbouwen die niet. Back-of-the-enveloppe berekningen 
         // laten zien dat die niet kunnen kloppen. Er zouden daarnaast grote verschillen moeten zitten tussen de diverse fondsen.
@@ -227,7 +224,7 @@
         // Al met al: ik kom uit op een potentiële 0,13% voordeel, mits alle bovenstaande aannames juist zijn.
     
 
-        underlyingAnnualPct: (0.09 + 0.02),
+        underlyingAnnualPct: 0.11,
       },
       // Aanbiederkosten op basis van saldo (S4, annual percentage):
       // 0,31% tot saldo 1.000.000, vanaf 1.000.000: 0,16%.

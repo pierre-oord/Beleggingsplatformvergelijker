@@ -315,7 +315,7 @@
     {
       id: "medirect-memanaged-groei",
       name: "MeDirect (MeManaged Groei)",
-      website: "https://www.medirect.eu",
+      website: "https://www.medirect.be",
       type: "fondsaanbieder",
       is_bank: false,
       countries: ["NL", "BE"],
@@ -360,7 +360,7 @@
     {
       id: "medirect-mesolo",
       name: "MeDirect (MeSolo)",
-      website: "https://www.medirect.eu",
+      website: "https://www.medirect.be",
       type: "broker",
       is_bank: false,
       countries: ["NL", "BE"],

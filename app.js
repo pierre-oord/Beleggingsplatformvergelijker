@@ -285,6 +285,8 @@
     `;
   }
 
+  const show_tax_services = false;
+
   const PROVIDERS_COLS_BASE = [
     { key: "providerName", label: "Aanbieder" },
     { key: "irrAnnual", label: "Rendement" },
@@ -297,10 +299,12 @@
     { key: "dividend", label: "Dividend" },
     { key: "duurzaamheid", label: "Duurzaamheid" },
     { key: "gratisInleggenOpnemen", label: "Gratis inleggen/opnemen" },
-    { key: "tax_BE_TOB_service", label: "Tax service TOB" },
-    { key: "tax_BE_roerende_voorheffing_service", label: "Tax service RV" },
-    { key: "tax_BE_effectentaks_service", label: "Tax service effectentax" },
-    { key: "tax_BE_reynderstaks_service", label: "Tax service Reynders" },
+    { key: "tax_BE_TOB", label: "Tax TOB" },
+    { key: "tax_BE_TOB_service", label: "Tax TOB service" },
+    { key: "tax_BE_roerende_voorheffing", label: "Tax RV" },
+    { key: "tax_BE_reynderstaks", label: "Tax Reynders" },
+    { key: "tax_BE_roerende_voorheffing_service", label: "Tax RV service" },
+    { key: "tax_BE_effectentaks", label: "Tax effectentaks" },
     { key: "service_recurring_investing", label: "Periodiek inleggen" },
     { key: "service_fractional_investing", label: "Fractioneel beleggen" },
     { key: "minInlegStatus", label: "Min. inleg" },
@@ -313,7 +317,7 @@
   let sortKey = "irrAnnual";
   let sortDir = "desc";
 
-  /** Kolommen zichtbaar: geen land = alles; land niet BE = verberg tax_BE*, tobCosts, costsAndTaxes; land niet NL = verberg fbi. */
+  /** Kolommen zichtbaar: geen land = alles; land niet BE = verberg tax_BE*, tobCosts, costsAndTaxes; land niet NL = verberg fbi; show_tax_services = false = verberg tax service kolommen. */
   function getVisibleProviderCols() {
     const land = filterLand?.value || "";
     const isBE = land === "BE";
@@ -325,6 +329,9 @@
     }
     if (!isNL) {
       cols = cols.filter((c) => c.key !== "fbi");
+    }
+    if (!show_tax_services) {
+      cols = cols.filter((c) => c.key !== "tax_BE_TOB_service" && c.key !== "tax_BE_roerende_voorheffing_service");
     }
     if (!cols.some((c) => c.key === sortKey)) sortKey = "irrAnnual";
     return cols;
@@ -358,14 +365,18 @@
           return provider.duurzaamheid || "";
         case "gratisInleggenOpnemen":
           return !provider.transactions?.deposit && !provider.transactions?.withdraw ? 1 : 0;
+        case "tax_BE_TOB":
+          return provider.tax_BE_TOB || "";
         case "tax_BE_TOB_service":
           return provider.tax_BE_TOB_service || "";
+        case "tax_BE_roerende_voorheffing":
+          return provider.tax_BE_roerende_voorheffing || "";
         case "tax_BE_roerende_voorheffing_service":
           return provider.tax_BE_roerende_voorheffing_service || "";
-        case "tax_BE_effectentaks_service":
-          return provider.tax_BE_effectentaks_service || "";
-        case "tax_BE_reynderstaks_service":
-          return provider.tax_BE_reynderstaks_service || "";
+        case "tax_BE_effectentaks":
+          return provider.tax_BE_effectentaks || "";
+        case "tax_BE_reynderstaks":
+          return provider.tax_BE_reynderstaks || "";
         case "service_recurring_investing":
           return provider.service_recurring_investing === true
             ? 1
@@ -422,14 +433,18 @@
         return s.duurzaamheid || "";
       case "gratisInleggenOpnemen":
         return !provider.transactions?.deposit && !provider.transactions?.withdraw ? 1 : 0;
+      case "tax_BE_TOB":
+        return provider.tax_BE_TOB || "";
       case "tax_BE_TOB_service":
         return provider.tax_BE_TOB_service || "";
+      case "tax_BE_roerende_voorheffing":
+        return provider.tax_BE_roerende_voorheffing || "";
       case "tax_BE_roerende_voorheffing_service":
         return provider.tax_BE_roerende_voorheffing_service || "";
-      case "tax_BE_effectentaks_service":
-        return provider.tax_BE_effectentaks_service || "";
-      case "tax_BE_reynderstaks_service":
-        return provider.tax_BE_reynderstaks_service || "";
+      case "tax_BE_effectentaks":
+        return provider.tax_BE_effectentaks || "";
+      case "tax_BE_reynderstaks":
+        return provider.tax_BE_reynderstaks || "";
       case "service_recurring_investing":
         return provider.service_recurring_investing === true
           ? 1
@@ -547,7 +562,7 @@
 
       cols.forEach((c, idx) => {
         const display = getProviderRowDisplay(c.key, p, rec);
-        const td = (c.key === "providerName" || YES_NO_COLS.includes(c.key) || c.key === "tax_BE_TOB_service" || c.key === "tax_BE_roerende_voorheffing_service" || c.key === "tax_BE_effectentaks_service" || c.key === "tax_BE_reynderstaks_service") ? htmlCell(display) : textCell(display);
+        const td = (c.key === "providerName" || YES_NO_COLS.includes(c.key) || c.key === "tax_BE_TOB" || c.key === "tax_BE_roerende_voorheffing" || c.key === "tax_BE_effectentaks" || c.key === "tax_BE_reynderstaks") ? htmlCell(display) : textCell(display);
         if (["irrAnnual", "totalCosts", "tobCosts", "costsAndTaxes", "eindOpnameNetto"].includes(c.key)) td.className = "num";
         tr.appendChild(td);
       });
@@ -676,36 +691,42 @@
           return !provider.transactions?.deposit && !provider.transactions?.withdraw
             ? '<span class="pill pill-ja">Ja</span>'
             : '<span class="pill pill-nee">Nee</span>';
-        case "tax_BE_TOB_service": {
-          const raw = provider.tax_BE_TOB_service;
+        case "tax_BE_TOB": {
+          const raw = provider.tax_BE_TOB;
           if (raw == null || raw === "") return "—";
           const v = String(raw).trim().toLowerCase();
-          if (v === "n.v.t." || v === "ja") return `<span class="pill pill-ja">${raw}</span>`;
-          if (v === "nee") return `<span class="pill pill-nee">${raw}</span>`;
+          if (v !== "ja") return v === "nee" ? `<span class="pill pill-tax-nee">${raw}</span>` : "—";
+          const svc = String(provider.tax_BE_TOB_service || "").trim().toLowerCase();
+          if (svc === "ja") return `<span class="pill pill-tax-nee">${raw} (auto)</span>`;
+          return `<span class="pill pill-tax-ja">${raw}</span>`;
+        }
+        case "tax_BE_TOB_service":
+          return provider.tax_BE_TOB_service || "—";
+        case "tax_BE_roerende_voorheffing": {
+          const raw = provider.tax_BE_roerende_voorheffing;
+          if (raw == null || raw === "") return "—";
+          const v = String(raw).trim().toLowerCase();
+          if (v !== "ja") return v === "nee" ? `<span class="pill pill-tax-nee">${raw}</span>` : "—";
+          const svc = String(provider.tax_BE_roerende_voorheffing_service || "").trim().toLowerCase();
+          if (svc === "ja") return `<span class="pill pill-tax-nee">${raw} (auto)</span>`;
+          return `<span class="pill pill-tax-ja">${raw}</span>`;
+        }
+        case "tax_BE_roerende_voorheffing_service":
+          return provider.tax_BE_roerende_voorheffing_service || "—";
+        case "tax_BE_effectentaks": {
+          const raw = provider.tax_BE_effectentaks;
+          if (raw == null || raw === "") return "—";
+          const v = String(raw).trim().toLowerCase();
+          if (v === "ja") return `<span class="pill pill-tax-ja">${raw}</span>`;
+          if (v === "nee") return `<span class="pill pill-tax-nee">${raw}</span>`;
           return "—";
         }
-        case "tax_BE_roerende_voorheffing_service": {
-          const raw = provider.tax_BE_roerende_voorheffing_service;
+        case "tax_BE_reynderstaks": {
+          const raw = provider.tax_BE_reynderstaks;
           if (raw == null || raw === "") return "—";
           const v = String(raw).trim().toLowerCase();
-          if (v === "n.v.t." || v === "ja") return `<span class="pill pill-ja">${raw}</span>`;
-          if (v === "nee") return `<span class="pill pill-nee">${raw}</span>`;
-          return "—";
-        }
-        case "tax_BE_effectentaks_service": {
-          const raw = provider.tax_BE_effectentaks_service;
-          if (raw == null || raw === "") return "—";
-          const v = String(raw).trim().toLowerCase();
-          if (v === "n.v.t." || v === "ja") return `<span class="pill pill-ja">${raw}</span>`;
-          if (v === "nee") return `<span class="pill pill-nee">${raw}</span>`;
-          return "—";
-        }
-        case "tax_BE_reynderstaks_service": {
-          const raw = provider.tax_BE_reynderstaks_service;
-          if (raw == null || raw === "") return "—";
-          const v = String(raw).trim().toLowerCase();
-          if (v === "n.v.t." || v === "ja") return `<span class="pill pill-ja">${raw}</span>`;
-          if (v === "nee") return `<span class="pill pill-nee">${raw}</span>`;
+          if (v === "ja") return `<span class="pill pill-tax-ja">${raw}</span>`;
+          if (v === "nee") return `<span class="pill pill-tax-nee">${raw}</span>`;
           return "—";
         }
         case "service_recurring_investing":
@@ -759,36 +780,42 @@
         return !provider.transactions?.deposit && !provider.transactions?.withdraw
           ? '<span class="pill pill-ja">Ja</span>'
           : '<span class="pill pill-nee">Nee</span>';
-      case "tax_BE_TOB_service": {
-        const raw = provider.tax_BE_TOB_service;
+      case "tax_BE_TOB": {
+        const raw = provider.tax_BE_TOB;
         if (raw == null || raw === "") return "—";
         const v = String(raw).trim().toLowerCase();
-        if (v === "n.v.t." || v === "ja") return `<span class="pill pill-ja">${raw}</span>`;
-        if (v === "nee") return `<span class="pill pill-nee">${raw}</span>`;
+        if (v !== "ja") return v === "nee" ? `<span class="pill pill-tax-nee">${raw}</span>` : "—";
+        const svc = String(provider.tax_BE_TOB_service || "").trim().toLowerCase();
+        if (svc === "ja") return `<span class="pill pill-tax-nee">${raw} (auto)</span>`;
+        return `<span class="pill pill-tax-ja">${raw}</span>`;
+      }
+      case "tax_BE_TOB_service":
+        return provider.tax_BE_TOB_service || "—";
+      case "tax_BE_roerende_voorheffing": {
+        const raw = provider.tax_BE_roerende_voorheffing;
+        if (raw == null || raw === "") return "—";
+        const v = String(raw).trim().toLowerCase();
+        if (v !== "ja") return v === "nee" ? `<span class="pill pill-tax-nee">${raw}</span>` : "—";
+        const svc = String(provider.tax_BE_roerende_voorheffing_service || "").trim().toLowerCase();
+        if (svc === "ja") return `<span class="pill pill-tax-nee">${raw} (auto)</span>`;
+        return `<span class="pill pill-tax-ja">${raw}</span>`;
+      }
+      case "tax_BE_roerende_voorheffing_service":
+        return provider.tax_BE_roerende_voorheffing_service || "—";
+      case "tax_BE_effectentaks": {
+        const raw = provider.tax_BE_effectentaks;
+        if (raw == null || raw === "") return "—";
+        const v = String(raw).trim().toLowerCase();
+        if (v === "ja") return `<span class="pill pill-tax-ja">${raw}</span>`;
+        if (v === "nee") return `<span class="pill pill-tax-nee">${raw}</span>`;
         return "—";
       }
-      case "tax_BE_roerende_voorheffing_service": {
-        const raw = provider.tax_BE_roerende_voorheffing_service;
+      case "tax_BE_reynderstaks": {
+        const raw = provider.tax_BE_reynderstaks;
         if (raw == null || raw === "") return "—";
         const v = String(raw).trim().toLowerCase();
-        if (v === "n.v.t." || v === "ja") return `<span class="pill pill-ja">${raw}</span>`;
-        if (v === "nee") return `<span class="pill pill-nee">${raw}</span>`;
-        return "—";
-      }
-      case "tax_BE_effectentaks_service": {
-        const raw = provider.tax_BE_effectentaks_service;
-        if (raw == null || raw === "") return "—";
-        const v = String(raw).trim().toLowerCase();
-        if (v === "n.v.t." || v === "ja") return `<span class="pill pill-ja">${raw}</span>`;
-        if (v === "nee") return `<span class="pill pill-nee">${raw}</span>`;
-        return "—";
-      }
-      case "tax_BE_reynderstaks_service": {
-        const raw = provider.tax_BE_reynderstaks_service;
-        if (raw == null || raw === "") return "—";
-        const v = String(raw).trim().toLowerCase();
-        if (v === "n.v.t." || v === "ja") return `<span class="pill pill-ja">${raw}</span>`;
-        if (v === "nee") return `<span class="pill pill-nee">${raw}</span>`;
+        if (v === "ja") return `<span class="pill pill-tax-ja">${raw}</span>`;
+        if (v === "nee") return `<span class="pill pill-tax-nee">${raw}</span>`;
         return "—";
       }
       case "service_recurring_investing":
@@ -834,7 +861,7 @@
       const row = cols.map((c) => {
         let val = getProviderRowDisplay(c.key, p, rec);
         if (c.key === "providerName") val = stripHtml(val) || p.name || "";
-        else if (YES_NO_COLS.includes(c.key) || c.key === "tax_BE_TOB_service" || c.key === "tax_BE_roerende_voorheffing_service" || c.key === "tax_BE_effectentaks_service" || c.key === "tax_BE_reynderstaks_service") val = stripHtml(val);
+        else if (YES_NO_COLS.includes(c.key) || c.key === "tax_BE_TOB" || c.key === "tax_BE_roerende_voorheffing" || c.key === "tax_BE_effectentaks" || c.key === "tax_BE_reynderstaks") val = stripHtml(val);
         return esc(val);
       });
       lines.push(row.join(","));

@@ -507,6 +507,21 @@ tfoot td {
   color: #dc2626;
 }
 
+/* Tax columns: Ja=red (zelf doen), Nee/Ja automatisch=green (niet van toepassing/provider doet het) */
+.pill-tax-ja {
+  margin-left: 0;
+  border-color: rgba(239, 68, 68, 0.6);
+  background: rgba(239, 68, 68, 0.18);
+  color: #dc2626;
+}
+
+.pill-tax-nee {
+  margin-left: 0;
+  border-color: rgba(34, 197, 94, 0.6);
+  background: rgba(34, 197, 94, 0.18);
+  color: #16a34a;
+}
+
 .link-website {
   color: var(--primary);
   text-decoration: underline;
